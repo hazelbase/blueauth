@@ -1,0 +1,86 @@
+{
+  "name": "blueauth",
+  "version": "0.3.0",
+  "description": "simple and secure authentication",
+  "engines": {
+    "node": ">=12"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.module.json",
+    "test": "echo \"Error: no test specified\" && exit 0",
+    "prepublishOnly": "npm run build",
+    "preversion": "npm run test",
+    "version": "git add CHANGELOG.md package.json src/*",
+    "postversion": "git push && git push --tags",
+    "lint": "eslint src"
+  },
+  "exports": {
+    "./nextjs": {
+      "require": "./dist/main/platform/nextjs.js",
+      "import": "./dist/module/platform/nextjs.js"
+    },
+    "./other": {
+      "require": "./dist/main/platform/other.js",
+      "import": "./dist/module/platform/other.js"
+    }
+  },
+  "typings": "dist/module/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*",
+        "dist/module/platform/*.d.ts"
+      ]
+    }
+  },
+  "author": "Adrian Artiles",
+  "license": "MIT",
+  "keywords": [
+    "auth",
+    "authentication",
+    "blueauth"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kionin/blueauth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kionin/blueauth/issues"
+  },
+  "homepage": "https://github.com/kionin/blueauth#readme",
+  "files": [
+    "dist/main",
+    "dist/module",
+    "src",
+    "!**/*.spec.*",
+    "!**/*.json",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "config": {
+    "commitizen": { "path": "cz-conventional-changelog" }
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.4.0",
+    "@types/jsonwebtoken": "^8.5.3",
+    "@types/node": "^15.14.0",
+    "@types/nodemailer": "^6.4.2",
+    "@typescript-eslint/eslint-plugin": "^4.28.1",
+    "@typescript-eslint/parser": "^4.28.1",
+    "commitizen": "^4.2.4",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.29.0",
+    "eslint-config-airbnb-typescript": "^12.3.1",
+    "eslint-plugin-import": "^2.23.4",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "cookie": "^0.4.1",
+    "express-graphql": "^0.12.0",
+    "graphql": "^15.5.1",
+    "graphql-type-json": "^0.3.2",
+    "jsonwebtoken": "^8.5.1",
+    "nodemailer": "^6.6.2"
+  }
+}

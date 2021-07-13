@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "outDir": "dist/module",
+    "module": "ES2020"
+  },
+  "exclude": [
+    "node_modules/**"
+  ]
+}
