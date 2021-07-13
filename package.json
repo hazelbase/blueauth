@@ -1,6 +1,6 @@
 {
   "name": "blueauth",
-  "version": "0.3.0",
+  "version": "0.7.2",
   "description": "simple and secure authentication",
   "engines": {
     "node": ">=12"
@@ -59,7 +59,9 @@
     "README.md"
   ],
   "config": {
-    "commitizen": { "path": "cz-conventional-changelog" }
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   },
   "devDependencies": {
     "@types/cookie": "^0.4.0",
