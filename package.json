@@ -1,6 +1,6 @@
 {
   "name": "blueauth",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "simple and secure authentication",
   "engines": {
     "node": ">=12"
