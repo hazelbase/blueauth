@@ -1,14 +1,17 @@
 /* eslint-disable no-console */
 import { graphql } from 'graphql';
+import cookie from 'cookie';
+import type { Request, Response } from 'express';
+import debug from 'debug';
 import { defaultConfigOptions, whoami } from '../lib/core';
 import type { ConfigOptions, GraphQLContext } from '../types';
-import type { NextApiRequest, NextApiResponse } from '../types/nextjs';
 import { schema, root } from '../lib/graphql';
 
 export function handler(configInput: ConfigOptions) {
   const config = { ...defaultConfigOptions, ...configInput };
 
-  return async (req: NextApiRequest, res: NextApiResponse) => {
+  return async (req: Request, res: Response) => {
+    debug('blueauth')('express handler req.cookies %j', req.cookies);
     const context: GraphQLContext = {
       config,
       cookies: req.cookies,
@@ -38,9 +41,11 @@ export function deepTest(color: string) {
 
 export function getIdentity(configInput: ConfigOptions) {
   const config = { ...defaultConfigOptions, ...configInput };
-  return async ({ req }: { req: NextApiRequest }) => {
+  return async ({ req }: { req: Request }) => {
     try {
-      const idCookie = req.cookies[`${config.cookieNamePrefix}-session`];
+      const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
+      const idCookie = cookies[`${config.cookieNamePrefix}-session`];
+      debug('blueauth')('express handler idCookie %s', idCookie);
       if (!idCookie) return null;
       const identity = await whoami({ jwtString: idCookie, config });
       return identity;

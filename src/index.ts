@@ -1,4 +1,4 @@
-export * as other from './platform/other';
+export * as express from './platform/express';
 export * as nextjs from './platform/nextjs';
 
 // const greeter = (color: string) => {

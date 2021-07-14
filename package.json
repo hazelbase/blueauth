@@ -19,9 +19,9 @@
       "require": "./dist/main/platform/nextjs.js",
       "import": "./dist/module/platform/nextjs.js"
     },
-    "./other": {
-      "require": "./dist/main/platform/other.js",
-      "import": "./dist/module/platform/other.js"
+    "./express": {
+      "require": "./dist/main/platform/express.js",
+      "import": "./dist/module/platform/express.js"
     }
   },
   "typings": "dist/module/index.d.ts",
@@ -65,6 +65,8 @@
   },
   "devDependencies": {
     "@types/cookie": "^0.4.0",
+    "@types/debug": "^4.1.6",
+    "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.3",
     "@types/node": "^15.14.0",
     "@types/nodemailer": "^6.4.2",
@@ -79,6 +81,7 @@
   },
   "dependencies": {
     "cookie": "^0.4.1",
+    "debug": "^4.3.2",
     "express-graphql": "^0.12.0",
     "graphql": "^15.5.1",
     "graphql-type-json": "^0.3.2",
