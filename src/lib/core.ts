@@ -3,14 +3,16 @@ import debug from 'debug';
 // import nodemailer from 'nodemailer';
 import type { ConfigOptions, DefaultConfigOptions, GetConfigOptions } from '../types';
 
+const isNotProd: boolean = typeof process.env.NODE_ENV === 'string' && process.env.NODE_ENV !== 'production';
 export const defaultConfigOptions: DefaultConfigOptions = {
   loginAfterRegistration: false,
   sessionLifespan: '7d',
   refreshSession: true,
   smtpFromName: 'Authentication',
-  smtpSubject: 'Login',
+  smtpSubject: 'Log In',
   cookieNamePrefix: 'blueauth',
   cookieOptions: {
+    secure: !isNotProd,
     httpOnly: true,
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7,
@@ -21,6 +23,15 @@ export const defaultConfigOptions: DefaultConfigOptions = {
     text: `log in at ${url}`,
   }),
 };
+
+export function makeConfig(config: ConfigOptions) {
+  const cookieOptions = { ...defaultConfigOptions.cookieOptions, ...config.cookieOptions };
+  return { ...defaultConfigOptions, ...config, ...cookieOptions };
+}
+
+export function makeGetConfig(config: GetConfigOptions) {
+  return { ...defaultConfigOptions, ...config };
+}
 
 export function createJWTSessionToken({
   id,
@@ -43,7 +54,7 @@ export async function sendLoginEmail({
   toEmail: string,
   token: string,
 }): Promise<Boolean> {
-  const urlUnencoded = `${config.authBaseURL}?query=mutation m1 { completeLogin(token: "${token}") }`;
+  const urlUnencoded = `${config.authEndpoint}?query=mutation m1 { completeLogin(token: "${token}") }`;
   const url = encodeURI(urlUnencoded);
   const { text, html } = config.createLoginEmailStrings({ url });
 
