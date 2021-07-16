@@ -11,6 +11,7 @@ export { ConfigOptions } from '../types';
 
 export function handler(configInput: ConfigOptions) {
   const config = makeConfig(configInput);
+  debug('blueauth')('handler config %O', config);
 
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const context: GraphQLContext = {
@@ -20,7 +21,6 @@ export function handler(configInput: ConfigOptions) {
     };
 
     const { method } = req;
-    // debug('blueauth')('request body %O', req);
     const query = method === 'POST' ? req.body.query : req.query.query;
     const variables = method === 'POST' ? req.body.variables : req.query.variables;
 

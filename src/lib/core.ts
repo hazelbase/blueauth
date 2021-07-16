@@ -26,7 +26,7 @@ export const defaultConfigOptions: DefaultConfigOptions = {
 
 export function makeConfig(config: ConfigOptions) {
   const cookieOptions = { ...defaultConfigOptions.cookieOptions, ...config.cookieOptions };
-  return { ...defaultConfigOptions, ...config, ...cookieOptions };
+  return { ...defaultConfigOptions, ...config, ...{ cookieOptions } };
 }
 
 export function makeGetConfig(config: GetConfigOptions) {
