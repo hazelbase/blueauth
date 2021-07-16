@@ -3,7 +3,7 @@ import type {
   MockNextResponse,
 } from '../src/types/mocks';
 import '../src/types/test.d';
-import { defaultConfigOptions } from '../src/lib/core';
+import { makeConfig } from '../src/lib/core';
 // import {MockExpressResponse} from '../src/types/test.d';
 
 const users = [
@@ -14,7 +14,7 @@ const users = [
 
 const configPassed = {
   secret: 'someAwesomeSecret2',
-  authBaseURL: `${process.env.BASE_URL}/api/auth`,
+  authEndpoint: `${process.env.BASE_URL}/api/auth`,
   smtpURL: `${process.env.SMTP_URL}`,
   smtpFromAddress: `${process.env.SMTP_FROM_ADDRESS}`,
   cookieOptions: {
@@ -35,7 +35,7 @@ const configPassed = {
   },
 };
 
-const config = { ...defaultConfigOptions, ...configPassed };
+const config = makeConfig(configPassed);
 
 // TODO: replace with this mocker?
 // npm i --save-dev @jest-mock/express

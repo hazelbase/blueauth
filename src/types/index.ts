@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import type { CookieSerializeOptions } from 'cookie';
 
 // TODO must return an email on user currently, since the flow needs it
@@ -10,55 +11,138 @@ export interface CreateIdentity {
 }
 
 export interface CreateLoginEmailStrings {
-  ({ url }: {
-    url: string
-  }): { text: string; html?: string; }
+  ({ url }: { url: string }): { text: string; html?: string; }
 }
 
 export type ConfigOptions = {
   /**
-   * random characters used as a key
+   * Used as a key to encrypt, decrypt, and sign data
    */
   secret: string;
 
   /**
-   * Automatically log someone in as soon as they registered.
+   * Automatically log someone in as soon as they register.
    * Note: this means their email is not yet verified.
+   *
+   * @default false
    */
   loginAfterRegistration?: boolean;
 
   /**
    * Refresh a signed in session each time the whoami query is hit.
    * Otherwise they will need to sign in when their original session expires.
+   *
+   * @default true
    */
   refreshSession?: boolean;
 
   /**
    * The absolute URL to the blueauth endpoint. Used in the links in the sign in emails
+   *
+   * @example
+   * https://example.com/api/auth
    */
-  authBaseURL: string;
+  authEndpoint: string;
 
   /**
-   * Set how long a sign in session lasts
-   * TODO: add documentation on how you can use a string. examples.
+   * Set how long a sign in session lasts.
+   * Can provide a string like '7d', '24h', '30s'.
+   * Can also provide number in milliseconds, for example 60000 is 1 minute.
+   *
+   * @default
+   * 7d
+   *
+   * @example
+   * 7d // 7 days
+   *
+   * @example
+   * 60000 // 1 minute
    */
   sessionLifespan?: string | number;
+
+  /**
+   * The SMTP URL to mail server to use to send emails
+   *
+   * @example
+   * smtps://username:password@smtp.example.com/?pool=true
+   */
   smtpURL: string;
+
+  /**
+   * The name to use as the from field in emails
+   *
+   * @example
+   * AirBnB
+   */
   smtpFromName?: string;
+
+  /**
+   * The email address to use as the from field in emails
+   *
+   * @example
+   * no-reply@airbnb.com
+   */
   smtpFromAddress: string;
+
+  /**
+   * The email subject to use in log in emails
+   *
+   * @example
+   * Log In to AirBnb!
+   *
+   * @default
+   * Log In
+   */
   smtpSubject?: string;
+
+  /**
+   * Set the cookie name prefix
+   *
+   * @default
+   * blueauth
+   */
   cookieNamePrefix?: string;
+
+  /**
+   * Cookie options, passed directly to [cookie](https://www.npmjs.com/package/cookie).
+   * Will merge with defaults, but what you pass in will override any existing defaults.
+   */
   cookieOptions?: CookieSerializeOptions;
-  findUniqueIdentity: FindUniqueIdentity;
-  createIdentity: CreateIdentity;
+
+  /**
+   * Function that will be given an object with the URL a user must visit to be logged in,
+   * and must return an object with "html" and "text" properties that are each strings.
+   * "html" the the string that is the email sent as HTML, and "text" is the string sent as an email to text only
+   *
+   * @example
+   * function makeEmail({ url }) {
+   *   const html = `Click on this to log in <a href="${url}">Click Here</a>`;
+   *   const text = `Copy and paste this URL into your browser address bar to log in: ${url}`;
+   *   return { html, text };
+   * }
+   */
   createLoginEmailStrings?: CreateLoginEmailStrings;
+
+  /**
+   * Function that will be given whatever identity payload (from a log in form for example) and returns a single matching identity / user if found;
+   */
+  findUniqueIdentity: FindUniqueIdentity;
+
+  /**
+   * Function that will be given whatever identity payload (from a sign up form for example) and creates and returns a single identity / user;
+   */
+  createIdentity: CreateIdentity;
 };
 
 export type GetConfigOptions = {
   /**
-   * random characters used as a key
+   * Used as a key to encrypt, decrypt, and sign data
    */
   secret: string;
+
+  /**
+   * Function that will be given whatever identity payload (from a log in form for example) and returns a single matching identity / user if found;
+   */
   findUniqueIdentity: FindUniqueIdentity;
 };
 
