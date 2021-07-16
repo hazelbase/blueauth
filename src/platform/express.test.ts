@@ -81,7 +81,7 @@ describe('handler', () => {
 
   describe('register', () => {
     it('responds with identity', async () => {
-      req.method = 'GET';
+      req.method = 'POST';
       req.body = {
         query: `
           mutation register {
@@ -298,7 +298,7 @@ describe('handler', () => {
 
   describe('logout', () => {
     it('responds with nothing when no cookie', async () => {
-      req.method = 'GET';
+      req.method = 'POST';
       req.body = { query: 'mutation logMeOut { logout }' };
 
       await handler(config)(req, res);
@@ -309,7 +309,7 @@ describe('handler', () => {
     });
 
     it('responds with empty cookie', async () => {
-      req.method = 'GET';
+      req.method = 'POST';
       req.body = { query: 'mutation logMeOut { logout }' };
       const { id } = exampleUser;
       const secret = `someWrongSecret${config.secret}`;

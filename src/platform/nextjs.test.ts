@@ -31,7 +31,7 @@ describe('handler', () => {
   describe('whoami', () => {
     it('responds with null when no cookie', async () => {
       req.method = 'GET';
-      req.body = {
+      req.query = {
         query: 'query mecheck { whoami }',
       };
 
@@ -44,7 +44,7 @@ describe('handler', () => {
 
     it('responds with user when cookie', async () => {
       req.method = 'GET';
-      req.body = {
+      req.query = {
         query: 'query mecheck { whoami }',
       };
       const { id } = exampleUser;
@@ -62,7 +62,7 @@ describe('handler', () => {
 
     it('responds with error when invalid cookie', async () => {
       req.method = 'GET';
-      req.body = {
+      req.query = {
         query: 'query mecheck { whoami }',
       };
       const { id } = exampleUser;
@@ -83,7 +83,7 @@ describe('handler', () => {
 
   describe('register', () => {
     it('responds with identity', async () => {
-      req.method = 'GET';
+      req.method = 'POST';
       req.body = {
         query: `
           mutation register {
@@ -227,7 +227,7 @@ describe('handler', () => {
         const token = jwt.sign(tokenBody, config.secret, { expiresIn: '15m' });
 
         req.method = 'GET';
-        req.body = {
+        req.query = {
           query: `
             mutation CompleteLogin {
               completeLogin(token: "${token}")
@@ -256,7 +256,7 @@ describe('handler', () => {
         const token = jwt.sign(tokenBody, `INVALID_SECRET_${config.secret}`, { expiresIn: '15m' });
 
         req.method = 'GET';
-        req.body = {
+        req.query = {
           query: `
             mutation CompleteLogin {
               completeLogin(token: "${token}")
@@ -278,7 +278,7 @@ describe('handler', () => {
     describe('no token', () => {
       it('responds with no token in cookie or body', async () => {
         req.method = 'GET';
-        req.body = {
+        req.query = {
           query: `
             mutation CompleteLogin {
               completeLogin(token: "just some random string")
@@ -299,8 +299,8 @@ describe('handler', () => {
   });
 
   describe('logout', () => {
-    it.only('responds with nothing when no cookie', async () => {
-      req.method = 'GET';
+    it('responds with nothing when no cookie', async () => {
+      req.method = 'POST';
       req.body = { query: 'mutation logMeOut { logout }' };
 
       await handler(config)(req, res);
@@ -311,7 +311,7 @@ describe('handler', () => {
     });
 
     it('responds with empty cookie', async () => {
-      req.method = 'GET';
+      req.method = 'POST';
       req.body = { query: 'mutation logMeOut { logout }' };
       const { id } = exampleUser;
       const secret = `someWrongSecret${config.secret}`;

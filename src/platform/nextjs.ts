@@ -1,32 +1,16 @@
 import { graphql } from 'graphql';
 // import { graphqlHTTP } from 'express-graphql';
 import debug from 'debug';
-import { defaultConfigOptions, whoami } from '../lib/core';
+import { makeConfig, makeGetConfig, whoami } from '../lib/core';
 import type { ConfigOptions, GraphQLContext, GetConfigOptions } from '../types';
 import type { GetServerSidePropsContextReq, NextApiRequest, NextApiResponse } from '../types/nextjs';
 // import { schema } from '../lib/graphql';
 import { schema, root } from '../lib/graphql';
 
-// TODO second
-// check req and disable all GETs except login
-// get less options from identity option
-// dev auto build
-// write tests
-// hooks
-// add secure cookies by default
-// other defaults from other projects?
-// on graphql, get operation name. other missing args?
-// check expected behavior of merging cookie config
-// url encode login email query?
-// optimize client use. move to microbundle with multiple import spots? lighten up config sig
-// signout all sessions
-// secret key rotation
-// validating of config file
-// be able to import directly from 'blueauth/handles/this'
-// better handle signaling of redirect from resolver for completeLogin
+export { ConfigOptions } from '../types';
 
 export function handler(configInput: ConfigOptions) {
-  const config = { ...defaultConfigOptions, ...configInput };
+  const config = makeConfig(configInput);
 
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const context: GraphQLContext = {
@@ -36,8 +20,9 @@ export function handler(configInput: ConfigOptions) {
     };
 
     const { method } = req;
-    const query = method === 'POST' ? req.body.query : req.body.query;
-    const variables = method === 'POST' ? req.body.variables : req.body.variables;
+    // debug('blueauth')('request body %O', req);
+    const query = method === 'POST' ? req.body.query : req.query.query;
+    const variables = method === 'POST' ? req.body.variables : req.query.variables;
 
     // console.log('> lib starting nextjs result1', {
     //   query,
@@ -63,7 +48,8 @@ export function handler(configInput: ConfigOptions) {
 }
 
 export function getIdentity(configInput: GetConfigOptions) {
-  const config = { ...defaultConfigOptions, ...configInput };
+  const config = makeGetConfig(configInput);
+
   return async ({ req }: { req: NextApiRequest | GetServerSidePropsContextReq }) => {
     try {
       const idCookie = req.cookies[`${config.cookieNamePrefix}-session`];

@@ -2,12 +2,14 @@ import { graphql } from 'graphql';
 import cookie from 'cookie';
 import type { Request, Response } from 'express';
 import debug from 'debug';
-import { defaultConfigOptions, whoami } from '../lib/core';
-import type { ConfigOptions, GraphQLContext } from '../types';
+import { makeConfig, makeGetConfig, whoami } from '../lib/core';
+import type { ConfigOptions, GraphQLContext, GetConfigOptions } from '../types';
 import { schema, root } from '../lib/graphql';
 
+export { ConfigOptions } from '../types';
+
 export function handler(configInput: ConfigOptions) {
-  const config = { ...defaultConfigOptions, ...configInput };
+  const config = makeConfig(configInput);
 
   return async (req: Request, res: Response) => {
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
@@ -34,8 +36,9 @@ export function handler(configInput: ConfigOptions) {
   };
 }
 
-export function getIdentity(configInput: ConfigOptions) {
-  const config = { ...defaultConfigOptions, ...configInput };
+export function getIdentity(configInput: GetConfigOptions) {
+  const config = makeGetConfig(configInput);
+
   return async ({ req }: { req: Request }) => {
     try {
       const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
