@@ -34,17 +34,13 @@ export const root = {
   JSON: GraphQLJSON,
 
   registerOrStartEmailLogin: async (args: any, context: GraphQLContext) => {
-    console.log('> lib starting registerOrStartEmailLogin', { args, context });
     const existingIdentity = await context.config.findUniqueIdentity(args.identity);
-    console.log('> lib registerOrStartEmailLogin debug', { existingIdentity });
     if (existingIdentity) {
       await loginStart({ identityPayload: args.identity, config: context.config });
       return 'LOGIN_STARTED';
     }
 
-    console.log('> lib registerOrStartEmailLogin debug v2');
     const identity = await context.config.createIdentity(args.identity);
-    console.log('> lib registerOrStartEmailLogin debug v3', { identity });
 
     if (context.config.loginAfterRegistration) {
       const token = jwt.sign(

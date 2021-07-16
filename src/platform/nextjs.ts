@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { graphql } from 'graphql';
 // import { graphqlHTTP } from 'express-graphql';
+import debug from 'debug';
 import { defaultConfigOptions, whoami } from '../lib/core';
 import type { ConfigOptions, GraphQLContext, GetConfigOptions } from '../types';
 import type { GetServerSidePropsContextReq, NextApiRequest, NextApiResponse } from '../types/nextjs';
@@ -26,11 +26,9 @@ import { schema, root } from '../lib/graphql';
 // better handle signaling of redirect from resolver for completeLogin
 
 export function handler(configInput: ConfigOptions) {
-  console.log('> lib starting nextjs', { configInput });
   const config = { ...defaultConfigOptions, ...configInput };
 
   return async (req: NextApiRequest, res: NextApiResponse) => {
-    if (!req.url) throw new Error('missing url');
     const context: GraphQLContext = {
       config,
       cookies: req.cookies,
@@ -38,9 +36,8 @@ export function handler(configInput: ConfigOptions) {
     };
 
     const { method } = req;
-    console.log('> lib method', method);
-    const query = method === 'POST' ? req.body.query : req.query.query;
-    const variables = method === 'POST' ? req.body.variables : req.query.variables;
+    const query = method === 'POST' ? req.body.query : req.body.query;
+    const variables = method === 'POST' ? req.body.variables : req.body.variables;
 
     // console.log('> lib starting nextjs result1', {
     //   query,
@@ -59,7 +56,6 @@ export function handler(configInput: ConfigOptions) {
       rootValue: root,
       contextValue: context,
     });
-    console.log('> lib ending nextjs result1', { result1 });
 
     if (result1.data?.completeLogin) return res.redirect(result1.data.completeLogin);
     return res.status(200).json(JSON.stringify(result1));
@@ -67,17 +63,16 @@ export function handler(configInput: ConfigOptions) {
 }
 
 export function getIdentity(configInput: GetConfigOptions) {
-  console.log('> lib getIdentity');
   const config = { ...defaultConfigOptions, ...configInput };
   return async ({ req }: { req: NextApiRequest | GetServerSidePropsContextReq }) => {
     try {
       const idCookie = req.cookies[`${config.cookieNamePrefix}-session`];
-      console.log('> lib getIdentity idCookie', idCookie);
+      debug('blueauth')('handler idCookie %s', idCookie);
       if (!idCookie) return null;
       const identity = await whoami({ jwtString: idCookie, config });
       return identity;
     } catch (error) {
-      console.error('[blueauth][error]', error);
+      debug('blueauth')('getIdentity error %o', error);
       return null;
     }
   };
