@@ -7,11 +7,11 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.module.json",
-    "test": "echo \"Error: no test specified\" && exit 0",
     "prepublishOnly": "npm run build",
     "preversion": "npm run test",
     "version": "git add CHANGELOG.md package.json src/*",
     "postversion": "git push && git push --tags",
+    "test": "tsc --noEmit -p tsconfig.json && jest src/*",
     "lint": "eslint src"
   },
   "exports": {
@@ -52,7 +52,7 @@
     "dist/main",
     "dist/module",
     "src",
-    "!**/*.spec.*",
+    "!**/*.test.*",
     "!**/*.json",
     "CHANGELOG.md",
     "LICENSE",
@@ -64,9 +64,11 @@
     }
   },
   "devDependencies": {
+    "@jest-mock/express": "^1.4.2",
     "@types/cookie": "^0.4.0",
     "@types/debug": "^4.1.6",
     "@types/express": "^4.17.13",
+    "@types/jest": "^26.0.24",
     "@types/jsonwebtoken": "^8.5.3",
     "@types/node": "^15.14.0",
     "@types/nodemailer": "^6.4.2",
@@ -77,6 +79,8 @@
     "eslint": "^7.29.0",
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-plugin-import": "^2.23.4",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.3",
     "typescript": "^4.3.5"
   },
   "dependencies": {

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import debug from 'debug';
 // import nodemailer from 'nodemailer';
 import type { ConfigOptions, DefaultConfigOptions, GetConfigOptions } from '../types';
 
@@ -21,6 +22,18 @@ export const defaultConfigOptions: DefaultConfigOptions = {
   }),
 };
 
+export function createJWTSessionToken({
+  id,
+  secret,
+  expiresIn,
+}: { id: string, secret: string, expiresIn: string | number }) {
+  return jwt.sign(
+    { id },
+    secret,
+    { expiresIn },
+  );
+}
+
 export async function sendLoginEmail({
   config,
   toEmail,
@@ -29,23 +42,20 @@ export async function sendLoginEmail({
   config: Required<ConfigOptions>,
   toEmail: string,
   token: string,
-}) {
-  // const url = `http://localhost:3000/api/authV2?token=${token}`;
-  // ?query={me{name}}
-  // ?query={completeLogin(token: token)}
-  // http://localhost:3000/api/authV2?query={completeLogin(token: token)}
-  // const url = `http://localhost:3000/api/authV2?query=${token}`;
+}): Promise<Boolean> {
   const urlUnencoded = `${config.authBaseURL}?query=mutation m1 { completeLogin(token: "${token}") }`;
   const url = encodeURI(urlUnencoded);
   const { text, html } = config.createLoginEmailStrings({ url });
 
-  // eslint-disable-next-line no-console
-  console.log('> lib email', {
+  const debugObject = {
     text,
     html,
     config,
     toEmail,
-  });
+  };
+  debug('blueauth')('sendLoginEmail %j', debugObject);
+
+  return true;
 
   // const transporter = nodemailer.createTransport(config.smtpURL);
   // const info = await transporter.sendMail({
@@ -55,9 +65,6 @@ export async function sendLoginEmail({
   //   text,
   //   html,
   // });
-  //
-  // // eslint-disable-next-line no-console
-  // console.log('> email info', info);
 }
 
 export async function loginStart({
@@ -107,11 +114,11 @@ export async function loginSubmit({
   const existingIdentity = await config.findUniqueIdentity(jwtDecoded);
   if (!existingIdentity) throw new Error('no matching identity');
 
-  const token = jwt.sign(
-    { id: existingIdentity.id },
-    config.secret,
-    { expiresIn: config.sessionLifespan },
-  );
+  const token = createJWTSessionToken({
+    id: existingIdentity.id,
+    secret: config.secret,
+    expiresIn: config.sessionLifespan,
+  });
 
   const { redirectURL } = jwtDecoded;
 
@@ -127,7 +134,7 @@ export async function whoami({
 }) {
   const jwtDecoded = jwt.verify(jwtString, config.secret);
   if (typeof jwtDecoded === 'string') throw new Error('unable to decode JWT');
-  console.log('> lib whoami jwtDecoded', jwtDecoded);
+  debug('blueauth')('whoami JWT decoded %o', jwtDecoded);
 
   // TODO: more strongly type JWTs
   const existingIdentity = await config.findUniqueIdentity(jwtDecoded);
