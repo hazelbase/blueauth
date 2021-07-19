@@ -6,12 +6,13 @@
     "node": ">=12"
   },
   "scripts": {
+    "dev": "nodemon --watch src --ext ts,graphql --exec 'npm run build'",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.module.json",
     "prepublishOnly": "npm run build",
     "preversion": "npm run test",
     "version": "git add CHANGELOG.md package.json src/*",
     "postversion": "git push && git push --tags",
-    "test": "tsc --noEmit -p tsconfig.json && jest src/*",
+    "test": "tsc --noEmit && jest src/*",
     "lint": "eslint src"
   },
   "exports": {
@@ -80,6 +81,7 @@
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-plugin-import": "^2.23.4",
     "jest": "^27.0.6",
+    "nodemon": "^2.0.12",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.5"
   },
