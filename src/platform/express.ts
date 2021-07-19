@@ -1,8 +1,13 @@
-import { graphql } from 'graphql';
+import { graphqlHTTP } from 'express-graphql';
 import cookie from 'cookie';
 import type { Request, Response } from 'express';
 import debug from 'debug';
-import { makeConfig, makeGetConfig, whoami } from '../lib/core';
+import {
+  loginSubmit,
+  makeConfig,
+  makeGetConfig,
+  whoami,
+} from '../lib/core';
 import type { ConfigOptions, GraphQLContext, GetConfigOptions } from '../types';
 import { schema, root } from '../lib/graphql';
 
@@ -12,27 +17,59 @@ export function handler(configInput: ConfigOptions) {
   const config = makeConfig(configInput);
 
   return async (req: Request, res: Response) => {
-    const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
+    if (req.query?.loginToken) {
+      const loginToken = Array.isArray(req.query.loginToken)
+        ? req.query.loginToken[0]
+        : req.query.loginToken;
+      try {
+        const {
+          token,
+          redirectURL,
+        } = await loginSubmit({ jwtString: loginToken as string, config });
+        const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, token, config.cookieOptions);
+        res.setHeader('Set-Cookie', cookieString);
+        res.redirect(redirectURL || '/');
+      } catch (error) {
+        res.send(`Error: ${error.message}`);
+      }
+      return;
+    }
+
+    if (!req.url) throw new Error('missing url');
+    const cookies = cookie.parse(req.headers.cookie || '');
     const context: GraphQLContext = {
       config,
       cookies,
       setCookie: (payload: string) => res.setHeader('Set-Cookie', payload),
     };
-
-    const { method } = req;
-    const query = method === 'POST' ? req.body?.query : req.body.query;
-    const variables = method === 'POST' ? req.body?.variables : req.body.variables;
-
-    const result1 = await graphql({
+    await graphqlHTTP({
+      graphiql: true,
       schema,
-      source: query,
-      variableValues: variables,
+      context,
       rootValue: root,
-      contextValue: context,
-    });
+    })(req, res);
 
-    if (result1.data?.completeLogin) return res.redirect(result1.data.completeLogin);
-    return res.status(200).json(result1);
+    // const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
+    // const context: GraphQLContext = {
+    //   config,
+    //   cookies,
+    //   setCookie: (payload: string) => res.setHeader('Set-Cookie', payload),
+    // };
+    //
+    // const { method } = req;
+    // const query = method === 'POST' ? req.body?.query : req.body.query;
+    // const variables = method === 'POST' ? req.body?.variables : req.body.variables;
+    //
+    // const result1 = await graphql({
+    //   schema,
+    //   source: query,
+    //   variableValues: variables,
+    //   rootValue: root,
+    //   contextValue: context,
+    // });
+    //
+    // if (result1.data?.completeLogin) return res.redirect(result1.data.completeLogin);
+    // return res.status(200).json(result1);
   };
 }
 

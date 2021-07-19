@@ -2,7 +2,8 @@
 import cookie from 'cookie';
 import jwt from 'jsonwebtoken';
 import '../types/test.d';
-import type { NextApiRequest, NextApiResponse } from '../types/nextjs';
+import type { NextApiRequest } from '../types/nextjs';
+import type { MockNextResponse } from '../types/mocks';
 import { handler, getIdentity } from './nextjs';
 import { createJWTSessionToken } from '../lib/core';
 
@@ -12,41 +13,29 @@ const {
   makeMockNextResponse,
 } = global.testHelpers;
 
-// eslint-disable-next-line max-len
-type MockExpressResponse = NextApiResponse & {
-  body: string;
-  headers: { [key: string]: string | number | readonly string[] };
-};
-let res: MockExpressResponse = <MockExpressResponse>{};
-let req: NextApiRequest = <NextApiRequest>{ cookies: {} };
+let res: MockNextResponse = <MockNextResponse>{};
+let req: NextApiRequest = <NextApiRequest>{ url: '/', cookies: {} };
 const exampleUser = identities[0];
 
 beforeEach(() => {
   res = makeMockNextResponse();
-  req = <NextApiRequest>{ cookies: {} };
+  req = <NextApiRequest>{ url: '/', cookies: {} };
   req.headers = {};
 });
 
 describe('handler', () => {
   describe('whoami', () => {
     it('responds with null when no cookie', async () => {
-      req.method = 'GET';
-      req.query = {
-        query: 'query mecheck { whoami }',
-      };
+      req.method = 'POST';
+      req.body = { query: 'query mecheck { whoami }' };
 
       await handler(config)(req, res);
-
-      const body = JSON.parse(res.body);
-      expect(res.statusCode).toBe(200);
-      expect(body.data.whoami).toBeNull();
+      expect(res.body.data.whoami).toBeNull();
     });
 
     it('responds with user when cookie', async () => {
-      req.method = 'GET';
-      req.query = {
-        query: 'query mecheck { whoami }',
-      };
+      req.method = 'POST';
+      req.body = { query: 'query mecheck { whoami }' };
       const { id } = exampleUser;
       const { secret } = config;
       const expiresIn = config.sessionLifespan;
@@ -54,17 +43,13 @@ describe('handler', () => {
 
       await handler(config)(req, res);
 
-      const body = JSON.parse(res.body);
-      expect(res.statusCode).toBe(200);
-      expect(body.data.whoami.id).toBe(id);
-      expect(body.data.whoami.email).toBe(exampleUser.email);
+      expect(res.body.data.whoami.id).toBe(id);
+      expect(res.body.data.whoami.email).toBe(exampleUser.email);
     });
 
     it('responds with error when invalid cookie', async () => {
-      req.method = 'GET';
-      req.query = {
-        query: 'query mecheck { whoami }',
-      };
+      req.method = 'POST';
+      req.body = { query: 'query mecheck { whoami }' };
       const { id } = exampleUser;
       const secret = `someWrongSecret${config.secret}`;
       const expiresIn = config.sessionLifespan;
@@ -74,9 +59,7 @@ describe('handler', () => {
 
       await handler(config)(req, res);
 
-      const body = JSON.parse(res.body);
-      const firstError = body.errors[0];
-      expect(res.statusCode).toBe(200);
+      const firstError = res.body.errors[0];
       expect(firstError.message).toBe('invalid signature');
     });
   });
@@ -94,9 +77,7 @@ describe('handler', () => {
 
       await handler(config)(req, res);
 
-      const body = JSON.parse(res.body);
-      expect(res.statusCode).toBe(200);
-      expect(body.data.register.email).toBe('222@test.com');
+      expect(res.body.data.register.email).toBe('222@test.com');
     });
   });
 
@@ -116,9 +97,7 @@ describe('handler', () => {
 
         await handler(config)(req, res);
 
-        const body = JSON.parse(res.body);
-        expect(res.statusCode).toBe(200);
-        expect(body.errors[0].message).toBe('no existing identity');
+        expect(res.body.errors[0].message).toBe('no existing identity');
       });
     });
 
@@ -136,9 +115,7 @@ describe('handler', () => {
 
         await handler(config)(req, res);
 
-        const body = JSON.parse(res.body);
-        expect(res.statusCode).toBe(200);
-        expect(body.data.startEmailLogin).toBe(true);
+        expect(res.body.data.startEmailLogin).toBe(true);
       });
     });
   });
@@ -159,10 +136,8 @@ describe('handler', () => {
 
         await handler(config)(req, res);
 
-        const body = JSON.parse(res.body);
         expect(res.headers['Set-Cookie']).toBeFalsy();
-        expect(res.statusCode).toBe(200);
-        expect(body.data.registerOrStartEmailLogin).toBe('LOGIN_STARTED');
+        expect(res.body.data.registerOrStartEmailLogin).toBe('LOGIN_STARTED');
       });
     });
 
@@ -189,9 +164,7 @@ describe('handler', () => {
           const sessionTokenDecoded = jwt.verify(sessionToken, config.secret);
           const sessionId = typeof sessionTokenDecoded === 'string' ? JSON.parse(sessionTokenDecoded).id : sessionTokenDecoded.id;
 
-          const body = JSON.parse(res.body);
-          expect(res.statusCode).toBe(200);
-          expect(body.data.registerOrStartEmailLogin).toBe('LOGIN_COMPLETED');
+          expect(res.body.data.registerOrStartEmailLogin).toBe('LOGIN_COMPLETED');
           expect(sessionId).toBe('aaaa'); // TODO: better handle new user creation ID
         });
       });
@@ -210,10 +183,8 @@ describe('handler', () => {
 
           await handler(config)(req, res);
 
-          const body = JSON.parse(res.body);
-          expect(res.statusCode).toBe(200);
           expect(res.headers['Set-Cookie']).toBeFalsy();
-          expect(body.data.registerOrStartEmailLogin).toBe('LOGIN_STARTED');
+          expect(res.body.data.registerOrStartEmailLogin).toBe('LOGIN_STARTED');
         });
       });
     });
@@ -227,13 +198,7 @@ describe('handler', () => {
         const token = jwt.sign(tokenBody, config.secret, { expiresIn: '15m' });
 
         req.method = 'GET';
-        req.query = {
-          query: `
-            mutation CompleteLogin {
-              completeLogin(token: "${token}")
-            }
-          `,
-        };
+        req.query = { loginToken: token };
 
         await handler(config)(req, res);
 
@@ -256,21 +221,13 @@ describe('handler', () => {
         const token = jwt.sign(tokenBody, `INVALID_SECRET_${config.secret}`, { expiresIn: '15m' });
 
         req.method = 'GET';
-        req.query = {
-          query: `
-            mutation CompleteLogin {
-              completeLogin(token: "${token}")
-            }
-          `,
-        };
+        req.query = { loginToken: token };
 
         await handler(config)(req, res);
 
-        const body = JSON.parse(res.body);
         const cookieHeader = res.headers['Set-Cookie'];
 
-        expect(res.statusCode).toBe(200);
-        expect(body.errors[0].message).toBe('invalid signature');
+        expect(res.body).toBe('Error: invalid signature');
         expect(cookieHeader).toBeFalsy();
       });
     });
@@ -278,21 +235,13 @@ describe('handler', () => {
     describe('no token', () => {
       it('responds with no token in cookie or body', async () => {
         req.method = 'GET';
-        req.query = {
-          query: `
-            mutation CompleteLogin {
-              completeLogin(token: "just some random string")
-            }
-          `,
-        };
+        req.query = { loginToken: 'just some random string' };
 
         await handler(config)(req, res);
 
-        const body = JSON.parse(res.body);
         const cookieHeader = res.headers['Set-Cookie'];
 
-        expect(res.statusCode).toBe(200);
-        expect(body.errors[0].message).toBeTruthy();
+        expect(res.body).toBe('Error: jwt malformed');
         expect(cookieHeader).toBeFalsy();
       });
     });
@@ -305,9 +254,7 @@ describe('handler', () => {
 
       await handler(config)(req, res);
 
-      const body = JSON.parse(res.body);
-      expect(res.statusCode).toBe(200);
-      expect(body.data.logout).toBe(true);
+      expect(res.body.data.logout).toBe(true);
     });
 
     it('responds with empty cookie', async () => {
@@ -322,11 +269,9 @@ describe('handler', () => {
 
       await handler(config)(req, res);
 
-      const body = JSON.parse(res.body);
       const cookieHeader = res.headers['Set-Cookie'];
       const cookieParsed = cookie.parse(cookieHeader as string);
-      expect(res.statusCode).toBe(200);
-      expect(body.data.logout).toBe(true);
+      expect(res.body.data.logout).toBe(true);
       expect(cookieParsed['Max-Age']).toBe('0');
     });
   });

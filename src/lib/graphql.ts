@@ -2,6 +2,9 @@ import cookie from 'cookie';
 import jwt from 'jsonwebtoken';
 import { buildSchema } from 'graphql';
 import GraphQLJSON from 'graphql-type-json';
+import debug from 'debug';
+// import { readFileSync } from 'fs';
+// import { join } from 'path';
 import {
   loginStart,
   loginSubmit,
@@ -9,6 +12,8 @@ import {
 } from './core';
 import type { GraphQLContext } from '../types';
 
+// const typeDefs = readFileSync(join(__dirname, './schema.graphql'), 'utf-8');
+// export const schema = buildSchema(typeDefs);
 export const schema = buildSchema(`
   scalar JSON
 
@@ -22,10 +27,9 @@ export const schema = buildSchema(`
   }
 
   type Mutation {
-    registerOrStartEmailLogin(identity: JSON!): ActionResult!
-    startEmailLogin(identity: JSON!): Boolean!
+    registerOrStartEmailLogin(identity: JSON!, redirectURL: String): ActionResult!
+    startEmailLogin(identity: JSON!, redirectURL: String): Boolean!
     register(identity: JSON!): JSON!
-    completeLogin(token: String!): String!
     logout: Boolean!
   }
 `);
@@ -34,9 +38,14 @@ export const root = {
   JSON: GraphQLJSON,
 
   registerOrStartEmailLogin: async (args: any, context: GraphQLContext) => {
+    debug('blueauth')('registerOrStartEmailLogin %O', args);
     const existingIdentity = await context.config.findUniqueIdentity(args.identity);
     if (existingIdentity) {
-      await loginStart({ identityPayload: args.identity, config: context.config });
+      await loginStart({
+        identityPayload: args.identity,
+        config: context.config,
+        redirectURL: args.redirectURL,
+      });
       return 'LOGIN_STARTED';
     }
 
@@ -54,7 +63,11 @@ export const root = {
       return 'LOGIN_COMPLETED';
     }
 
-    await loginStart({ identityPayload: identity, config: context.config });
+    await loginStart({
+      identityPayload: identity,
+      config: context.config,
+      redirectURL: args.redirectURL,
+    });
     return 'LOGIN_STARTED';
   },
 
@@ -77,7 +90,11 @@ export const root = {
   },
 
   startEmailLogin: async (args: any, { config }: GraphQLContext) => {
-    await loginStart({ identityPayload: args.identity, config });
+    await loginStart({
+      identityPayload: args.identity,
+      config,
+      redirectURL: args.redirectURL,
+    });
     return true;
   },
 

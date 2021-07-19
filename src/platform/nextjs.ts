@@ -1,49 +1,51 @@
-import { graphql } from 'graphql';
-// import { graphqlHTTP } from 'express-graphql';
+import cookie from 'cookie';
+import { graphqlHTTP } from 'express-graphql';
 import debug from 'debug';
-import { makeConfig, makeGetConfig, whoami } from '../lib/core';
+import {
+  loginSubmit,
+  makeConfig,
+  makeGetConfig,
+  whoami,
+} from '../lib/core';
 import type { ConfigOptions, GraphQLContext, GetConfigOptions } from '../types';
 import type { GetServerSidePropsContextReq, NextApiRequest, NextApiResponse } from '../types/nextjs';
-// import { schema } from '../lib/graphql';
 import { schema, root } from '../lib/graphql';
 
 export { ConfigOptions } from '../types';
+
+interface NextApiRequestV2 extends NextApiRequest { url: string; }
 
 export function handler(configInput: ConfigOptions) {
   const config = makeConfig(configInput);
   debug('blueauth')('handler config %O', config);
 
   return async (req: NextApiRequest, res: NextApiResponse) => {
+    if (req.query?.loginToken) {
+      const loginToken = Array.isArray(req.query.loginToken)
+        ? req.query.loginToken[0]
+        : req.query.loginToken;
+      try {
+        const { token, redirectURL } = await loginSubmit({ jwtString: loginToken, config });
+        const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, token, config.cookieOptions);
+        res.setHeader('Set-Cookie', cookieString);
+        res.redirect(redirectURL || '/');
+      } catch (error) {
+        res.send(`Error: ${error.message}`);
+      }
+      return;
+    }
+
+    if (!req.url) throw new Error('missing url');
     const context: GraphQLContext = {
       config,
       cookies: req.cookies,
       setCookie: (payload: string) => res.setHeader('Set-Cookie', payload),
     };
-
-    const { method } = req;
-    const query = method === 'POST' ? req.body.query : req.query.query;
-    const variables = method === 'POST' ? req.body.variables : req.query.variables;
-
-    // console.log('> lib starting nextjs result1', {
-    //   query,
-    //   variables,
-    //   method,
-    //   body: req.body,
-    // });
-
-    // TODO: look into redirecting, maybe using extension
-    // graphqlHTTP({ schema, context })(req as any, res);
-
-    const result1 = await graphql({
+    await graphqlHTTP({
       schema,
-      source: query,
-      variableValues: variables,
+      context,
       rootValue: root,
-      contextValue: context,
-    });
-
-    if (result1.data?.completeLogin) return res.redirect(result1.data.completeLogin);
-    return res.status(200).json(JSON.stringify(result1));
+    })(req as NextApiRequestV2, res);
   };
 }
 

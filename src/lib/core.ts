@@ -54,7 +54,9 @@ export async function sendLoginEmail({
   toEmail: string,
   token: string,
 }): Promise<Boolean> {
-  const urlUnencoded = `${config.authEndpoint}?query=mutation m1 { completeLogin(token: "${token}") }`;
+  // eslint-disable-next-line max-len
+  // const urlUnencoded = `${config.authEndpoint}?query=query q1 { completeLogin(token: "${token}") }`;
+  const urlUnencoded = `${config.authEndpoint}?loginToken=${token}`;
   const url = encodeURI(urlUnencoded);
   const { text, html } = config.createLoginEmailStrings({ url });
 
@@ -81,9 +83,11 @@ export async function sendLoginEmail({
 export async function loginStart({
   identityPayload,
   config,
+  redirectURL,
 }: {
   identityPayload: any,
   config: Required<ConfigOptions>,
+  redirectURL?: string,
 }): Promise<void> {
   // TODO Future: have path to more login flows, like FIDO
   const existingIdentity = await config.findUniqueIdentity(identityPayload);
@@ -95,9 +99,8 @@ export async function loginStart({
     case 'email': {
       const { email } = existingIdentity;
       if (!email) throw new Error('missing email');
-      const tokenBody: { email: string, redirectURL?: string } = { email };
-      // TODO: is this the best place to pass redirectURL?
-      if (identityPayload.redirectURL) tokenBody.redirectURL = identityPayload.redirectURL;
+      const tokenBody: { email: string, redirectURL?: string } = { email, redirectURL };
+      if (redirectURL) tokenBody.redirectURL = redirectURL;
       const token = jwt.sign(tokenBody, config.secret, { expiresIn: '15m' });
       sendLoginEmail({ config, toEmail: email, token });
       break;

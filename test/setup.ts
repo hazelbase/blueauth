@@ -45,7 +45,7 @@ global.testHelpers = {
   identities: users,
   makeMockNextResponse: () => {
     const res: MockNextResponse = <MockNextResponse>{};
-    res.body = '';
+    res.body = {};
     res.headers = {};
     res.status = (code) => {
       res.statusCode = code;

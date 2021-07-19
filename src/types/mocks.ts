@@ -7,6 +7,6 @@ export type MockExpressResponse = Response & {
 };
 
 export type MockNextResponse = NextApiResponse & {
-  body: string;
+  body: any;
   headers: { [key: string]: string | number | readonly string[] };
 };
