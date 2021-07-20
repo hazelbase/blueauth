@@ -32,6 +32,7 @@ export const defaultConfigOptions: DefaultConfigOptions = {
 
 export function makeConfig(config: ConfigOptions) {
   const cookieOptions = { ...defaultConfigOptions.cookieOptions, ...config.cookieOptions };
+  if (cookieOptions.domain === 'localhost') delete cookieOptions.domain;
   return { ...defaultConfigOptions, ...config, ...{ cookieOptions } };
 }
 
