@@ -1,7 +1,13 @@
 import jwt from 'jsonwebtoken';
 import debug from 'debug';
-// import nodemailer from 'nodemailer';
-import type { ConfigOptions, DefaultConfigOptions, GetConfigOptions } from '../types';
+import nodemailer from 'nodemailer';
+import type {
+  DefaultConfigOptions,
+  ConfigOptions,
+  GetConfigOptions,
+  Config,
+} from '../types';
+import { emailTemplateText, emailTemplateHTML } from './emailTemplate';
 
 const isNotProd: boolean = typeof process.env.NODE_ENV === 'string' && process.env.NODE_ENV !== 'production';
 export const defaultConfigOptions: DefaultConfigOptions = {
@@ -18,9 +24,9 @@ export const defaultConfigOptions: DefaultConfigOptions = {
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
   },
-  createLoginEmailStrings: ({ url }) => ({
-    // TODO: improve default email templates
-    text: `log in at ${url}`,
+  createLoginEmailStrings: ({ url, serviceName }) => ({
+    text: emailTemplateText(url, serviceName),
+    html: emailTemplateHTML(url, serviceName),
   }),
 };
 
@@ -50,7 +56,7 @@ export async function sendLoginEmail({
   toEmail,
   token,
 }: {
-  config: Required<ConfigOptions>,
+  config: Config,
   toEmail: string,
   token: string,
 }): Promise<Boolean> {
@@ -58,7 +64,7 @@ export async function sendLoginEmail({
   // const urlUnencoded = `${config.authEndpoint}?query=query q1 { completeLogin(token: "${token}") }`;
   const urlUnencoded = `${config.authEndpoint}?loginToken=${token}`;
   const url = encodeURI(urlUnencoded);
-  const { text, html } = config.createLoginEmailStrings({ url });
+  const { text, html } = config.createLoginEmailStrings({ url, serviceName: config.serviceName });
 
   const debugObject = {
     text,
@@ -68,16 +74,21 @@ export async function sendLoginEmail({
   };
   debug('blueauth')('sendLoginEmail %j', debugObject);
 
-  return true;
-
-  // const transporter = nodemailer.createTransport(config.smtpURL);
-  // const info = await transporter.sendMail({
-  //   from: `"${config.smtpFromName}" <${config.smtpFromAddress}>`, // sender address
-  //   to: toEmail,
-  //   subject: config.smtpSubject, // Subject line
-  //   text,
-  //   html,
-  // });
+  try {
+    const transporter = nodemailer.createTransport(config.smtpURL);
+    const info = await transporter.sendMail({
+      from: `"${config.smtpFromName}" <${config.smtpFromAddress}>`, // sender address
+      to: toEmail,
+      subject: config.smtpSubject,
+      text,
+      html,
+    });
+    debug('blueauth')('sendLoginEmail info %o', info);
+    return true;
+  } catch (error) {
+    debug('blueauth')('sendLoginEmail error %o', error);
+    return false;
+  }
 }
 
 export async function loginStart({
@@ -86,7 +97,7 @@ export async function loginStart({
   redirectURL,
 }: {
   identityPayload: any,
-  config: Required<ConfigOptions>,
+  config: Config,
   redirectURL?: string,
 }): Promise<void> {
   // TODO Future: have path to more login flows, like FIDO
@@ -120,7 +131,7 @@ export async function loginSubmit({
   config,
 }: {
   jwtString: string,
-  config: Required<ConfigOptions>,
+  config: Config,
 }): Promise<LoginSubmit> {
   const jwtDecoded = jwt.verify(jwtString, config.secret);
   if (typeof jwtDecoded === 'string') throw new Error('unable to decode JWT');
@@ -144,7 +155,7 @@ export async function whoami({
   config,
 }: {
   jwtString: string,
-  config: Required<GetConfigOptions>,
+  config: GetConfigOptions,
 }) {
   const jwtDecoded = jwt.verify(jwtString, config.secret);
   if (typeof jwtDecoded === 'string') throw new Error('unable to decode JWT');

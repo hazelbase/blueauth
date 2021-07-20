@@ -18,7 +18,7 @@ const configPassed = {
   smtpURL: `${process.env.SMTP_URL}`,
   smtpFromAddress: `${process.env.SMTP_FROM_ADDRESS}`,
   cookieOptions: {
-    domain: 'telephonyresearch.com',
+    domain: 'test.com',
     httpOnly: true,
     sameSite: 'lax' as 'lax',
     maxAge: 60 * 60 * 24 * 7,

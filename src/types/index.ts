@@ -11,7 +11,7 @@ export interface CreateIdentity {
 }
 
 export interface CreateLoginEmailStrings {
-  ({ url }: { url: string }): { text: string; html?: string; }
+  ({ url, serviceName }: { url: string, serviceName?: string }): { text: string; html?: string; }
 }
 
 export type ConfigOptions = {
@@ -59,6 +59,14 @@ export type ConfigOptions = {
    * 60000 // 1 minute
    */
   sessionLifespan?: string | number;
+
+  /**
+   * The service name. This appears in emails, such as "Sign in to Rocket Rides".
+   *
+   * @example
+   * Rocket Rides
+   */
+  serviceName?: string;
 
   /**
    * The SMTP URL to mail server to use to send emails
@@ -157,8 +165,10 @@ export type DefaultConfigOptions = {
   createLoginEmailStrings: CreateLoginEmailStrings;
 };
 
+export type Config = Omit<Required<ConfigOptions>, 'serviceName'> & { serviceName?: string };
+
 export type GraphQLContext = {
-  config: Required<ConfigOptions>,
+  config: Config,
   cookies: { [key: string]: string },
   setCookie: (payload: string) => void,
   // setRedirect: (url: string) => void,
