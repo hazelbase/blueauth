@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.5](https://github.com/kionin/blueauth/compare/v0.7.4...v0.7.5) (2021-07-20)
+
+
+### Bug Fixes
+
+* removing cookie domain if it is localhost since most browsers require a "." in domain ([d79d149](https://github.com/kionin/blueauth/commit/d79d149afe8abec44f13d0b9e5422358819e91a9))
+
 ### [0.7.4](https://github.com/kionin/blueauth/compare/v0.7.3...v0.7.4) (2021-07-20)
 
 
