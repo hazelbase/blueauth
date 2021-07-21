@@ -43,7 +43,6 @@ export function handler(configInput: ConfigOptions) {
       setCookie: (payload: string) => res.setHeader('Set-Cookie', payload),
     };
     await graphqlHTTP({
-      graphiql: true,
       schema,
       context,
       rootValue: root,
