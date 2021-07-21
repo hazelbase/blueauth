@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.6](https://github.com/kionin/blueauth/compare/v0.7.5...v0.7.6) (2021-07-21)
+
+
+### Features
+
+* initial commit of lambda functionality ([6cae1dd](https://github.com/kionin/blueauth/commit/6cae1dde262ae17dd117888ea19034f5d08fe5af))
+
+
+### Bug Fixes
+
+* updating default email template preheader text ([a0b6e9f](https://github.com/kionin/blueauth/commit/a0b6e9f3d8048b8d8b398d896aeed93c24203780))
+
 ### [0.7.5](https://github.com/kionin/blueauth/compare/v0.7.4...v0.7.5) (2021-07-20)
 
 
