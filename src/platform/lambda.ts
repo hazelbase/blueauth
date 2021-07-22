@@ -15,41 +15,6 @@ import { schema, root } from '../lib/graphql';
 
 export { ConfigOptions } from '../types';
 
-// class ServerlessRequest extends http.IncomingMessage {
-//   constructor({ method, url, headers, body, remoteAddress }: APIGatewayProxyEvent) {
-//     super({
-//       encrypted: true,
-//       readable: false,
-//       remoteAddress,
-//       address: () => ({ port: 443 }),
-//       end: Function.prototype,
-//       destroy: Function.prototype,
-//     });
-//
-//     if (typeof headers['content-length'] === 'undefined') {
-//       headers['content-length'] = Buffer.byteLength(body);
-//     }
-//
-//     Object.assign(this, {
-//       ip: remoteAddress,
-//       complete: true,
-//       httpVersion: '1.1',
-//       httpVersionMajor: '1',
-//       httpVersionMinor: '1',
-//       method,
-//       headers,
-//       body,
-//       url,
-//     });
-//
-//     this._read = () => {
-//       this.push(body);
-//       this.push(null);
-//     };
-//   }
-//
-// }
-
 export function handler(configInput: ConfigOptions) {
   const config = makeConfig(configInput);
   return async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -60,6 +25,12 @@ export function handler(configInput: ConfigOptions) {
       headers: {},
       body: '',
     };
+
+    const eventHeaders: APIGatewayProxyEvent['headers'] = {};
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [key, value] of Object.entries(event.headers || {})) {
+      eventHeaders[key.toLowerCase()] = value;
+    }
     if (event.queryStringParameters?.loginToken) {
       const { loginToken } = event.queryStringParameters;
       try {
@@ -78,7 +49,7 @@ export function handler(configInput: ConfigOptions) {
       return result;
     }
 
-    const cookies = cookie.parse(event.headers.Cookie || '');
+    const cookies = cookie.parse(eventHeaders.cookie || '');
     const context: GraphQLContext = {
       config,
       cookies,
@@ -94,7 +65,7 @@ export function handler(configInput: ConfigOptions) {
     // });
 
     let { body }: { body: any } = event;
-    const contentType = event.headers['Content-Type'] || event.headers['content-type'];
+    const contentType = eventHeaders['content-type'];
     if (contentType && contentType.includes('application/json') && event.body) {
       body = JSON.parse(event.body);
     }
@@ -107,14 +78,8 @@ export function handler(configInput: ConfigOptions) {
       ...{
         body,
         url: '',
-        method: event.httpMethod,
-        headers: {
-          ...event.headers,
-          ...{
-            'content-type': contentType,
-            'content-encoding': event.headers['Content-Encoding'],
-          },
-        },
+        method: event.httpMethod || (event as any).method,
+        headers: eventHeaders,
       },
     } as unknown as Request;
 
@@ -149,7 +114,7 @@ export function getIdentity(configInput: GetConfigOptions) {
 
   return async ({ event }: { event: APIGatewayProxyEvent }) => {
     try {
-      const cookies = cookie.parse(event.headers.Cookie || '');
+      const cookies = cookie.parse(event.headers?.Cookie || event.headers?.cookie || '');
       const idCookie = cookies[`${config.cookieNamePrefix}-session`];
       debug('blueauth')('handler idCookie %s', idCookie);
       if (!idCookie) return null;
