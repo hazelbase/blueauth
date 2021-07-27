@@ -47,12 +47,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kionin/blueauth.git"
+    "url": "https://github.com/key-lab/blueauth.git"
   },
   "bugs": {
-    "url": "https://github.com/kionin/blueauth/issues"
+    "url": "https://github.com/key-lab/blueauth/issues"
   },
-  "homepage": "https://github.com/kionin/blueauth#readme",
+  "homepage": "https://github.com/key-lab/blueauth#readme",
   "files": [
     "dist/main",
     "dist/module",
