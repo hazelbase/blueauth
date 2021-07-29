@@ -41,7 +41,8 @@ Quick example using Next.js.
 
 First create an API endpoint. We'll create one accessible at `/api/blueauth`:
 ```javascript
-// /pages/api/blueauth.js
+// pages/api/blueauth.js
+
 import { handler as blueauthHandler } from 'blueauth/nextjs';
 
 // In this example our users are in this array,
@@ -52,19 +53,25 @@ const users = [
   { id: '456', email: 'jill@example.com' },
 ];
 
-const config = {
+// Now we will export the BlueAuth handler and pass it
+// a single configuration object which has a secret key,
+// SMTP email information, and two functions;
+// findUniqueIdentity to retrieve a user, and
+// createIdentity to create a user
+export const handler = blueauthHandler({
   secret: 'mySecretForSigning',
   authEndpoint: 'https://myapp.com/api/blueauth', // used for links in emails
   smtpURL: 'smtps://postmaster:pmPassword@smtp.sendgrid.org/', // for sending emails
   smtpFromAddress: 'no-reply@myapp.com',
   findUniqueIdentity: async (payload) => {
-    // This is the function used to try to find a given user / identity
+    // This is the function used to try to find a given user / identity.
     // The payload here is what you sent to the API, which you will see below.
     // return a single found user / identity, or falsey if none found
 
     console.log('> looking for a user that matches', payload);
 
     const user = users.find((user) => (user.email === payload.email || user.id === payload.id));
+    // Another example where we are getting users from an API;
     // const user = await fetch('https://secure-api.example-b.com/findUser', { method: 'post', body: JSON.stringify(payload) });
 
     if (user) {
@@ -76,23 +83,23 @@ const config = {
     }
   },
   createIdentity: async (payload) => {
-  // This is called when a registration is started via the API.
+    // This is called when a registration is started via the API.
+
     console.log('> Creating a user with the following info', payload);
+
     const newId = '789';
     const newUser = { id: newId, ...payload };
     users.push(newUser);
     // const newUser = await fetch('https://secure-api.example-b.com/createUser', { method: 'post', body: JSON.stringify(payload) });
     return newUser;
   },
-};
-
-export const handler = blueauthHandler(config);
+});
 ```
 You now have an authentication (GraphQL) API service at `/api/blueauth`.
 
 To make it  simple to use, you can use the pre-built javascript client [blueauth-client](https://github.com/key-lab/blueauth-client). Here's an example:
 ```javascript
-// /pages/login.jsx
+// pages/login.jsx
 import React, { useState } from 'react';
 import blueauth from 'blueauth-client';
 
@@ -205,14 +212,14 @@ In next.js you can use `getIdentity` in server side rendering on the pages.
 
 Here's an example of a page that grabs the user in SSR, redirects users to sign in if not already, and has an example button that does an authenticated API request:
 ```javascript
-// /pages/dashboard.jsx
+// pages/dashboard.jsx
 import { getIdentity } from 'blueauth/nextjs';
 
 export default function Page({ user }) {
   const handleUserClick = async () => {
-    // This endpoint should retrieve the request's user with getIdentity on the server side
     // credentials must be include to send the auth cookies along with the request
     const result = await fetch('/api/secureEndpoint', { credentials: 'include' });
+    // (Don't forget to use getIdentity on the server side to retrive this request's user!)
     const jsonResults = await result.json();
     console.log('> your results are', { jsonResults });
   };

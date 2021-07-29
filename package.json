@@ -41,6 +41,9 @@
   "author": "Adrian Artiles",
   "license": "MIT",
   "keywords": [
+    "serverless",
+    "nextjs",
+    "lambda",
     "auth",
     "authentication",
     "blueauth"
@@ -52,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/key-lab/blueauth/issues"
   },
-  "homepage": "https://github.com/key-lab/blueauth#readme",
+  "homepage": "https://blueauth.io",
   "files": [
     "dist/main",
     "dist/module",
