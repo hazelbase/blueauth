@@ -1,7 +1,6 @@
-
 <p align="center">
    <br/>
-   <a href="https://blueauth.io" target="_blank"><img width="150px" src="https://blueauth.io/logo.png" /></a>
+   <a href="https://blueauth.io" target="_blank"><img width="150px" src="https://cdn.kacdn.org/file/kacdn1/blueauth/logo.png" /></a>
    <h3 align="center">BlueAuth</h3>
    <p align="center">Simple and secure passwordless authentication.</p>
    <p align="center">One-line use in serverless, middleware, express, next.js, and more.</p>
@@ -26,14 +25,15 @@ npm install --save blueauth
 ```
 
 # Features
-  - No third parties at all. Just you and your users. Complete control and security of your data.
-  - No sensitive information to store, and no passwords to manage.
-  - Stateless. No databases or connections required. 
-  - Run in express, next.js, aws lambda, or anywhere. More pre-built adapters coming soon.
-  - Secure by default. Restrictive cookie policy, small surface area, and more.
-  - Coded in typescript, complete with exposed type definitions and inline IDE documentation
-  - Under 1k lines of code
-  - Batteries included. Just add your desired settings, and blueauth handles everything else.
+- Get secure user authentication with just 1 line of code and a single configuration object. Done in minutes.
+- No third parties at all. Just you and your users. Complete control and security of your data.
+- No sensitive information to store, and no passwords to manage.
+- Stateless. No databases or connections required.
+- Run in express, next.js, aws lambda, or anywhere. More pre-built adapters coming soon.
+- Secure by default. Restrictive cookie policy, small surface area, and more.
+- Coded in typescript, complete with exposed type definitions and inline IDE documentation
+- Under 1k lines of code
+- Batteries included. Just add your desired settings, and BlueAuth handles everything else.
 
 # Quick Start
 Quick example using Next.js.
@@ -60,7 +60,7 @@ const config = {
   findUniqueIdentity: async (payload) => {
     // This is the function used to try to find a given user / identity
     // The payload here is what you sent to the API, which you will see below.
-  // return a single found user / identity, or falsey if none found
+    // return a single found user / identity, or falsey if none found
 
     console.log('> looking for a user that matches', payload);
 
@@ -97,7 +97,7 @@ import React, { useState } from 'react';
 import blueauth from 'blueauth-client';
 
 export default function Page() {
-  const [email, setEmail] = useState<string>('example@example.com');
+  const [email, setEmail] = useState('example@example.com');
 
   const handleRegister = async () => {
     // This will hit the createIdentity, with the results returned here.
@@ -113,9 +113,9 @@ export default function Page() {
     //   (to the user's email attribute)
     // after clicking the log in link in the email, they will be sent to redirectURL (default of '/')
     const { result } = await blueauth().startEmailLogin({
-    identity: { email },
-    redirectURL: '/dashboard'
-  });
+       identity: { email },
+       redirectURL: '/dashboard'
+    });
     console.log('> is login started:', result); // true or false
   };
 
@@ -130,11 +130,13 @@ export default function Page() {
       identity: { email },
       redirectURL: '/dashboard'
     });
-    console.log('> is new user or is login started?', result); // LOGIN_STARTED (or LOGIN_COMPLETED for new user auto sign in)
+    // result is LOGIN_STARTED (or LOGIN_COMPLETED for new user auto sign in)
+    console.log('> is new user or is login started?', result);
   };
 
   const handleWhoami = async () => {
-    // This does an API call that uses the id stored in the secure cookie and passes it to findUniqueIdentity to find the corresponding user
+    // This does an API call that uses the id stored in the secure cookie
+    // and passes it to findUniqueIdentity to find the corresponding user.
     // in other words, in findUniqueIdentity payload is { id: 'someIdHere' }
     const { whoami } = await blueauth().getSelf();
     console.log('> you are', whoami); // whatever is returned from findUniqueIdentity
@@ -236,6 +238,7 @@ export const getServerSideProps = async (context) => {
 # Documentation
 ## Configuration
 All settings and configuration is done by passing a single configuration object.
+Configuration object properties:
 Name| Default | Type | Description
 ------- | ------------- | ------------- | ----------
 secret |  | string | **(required)** Key to encrypt, decrypt, and sign data. Keep it secure. Changing will sign out all users.
@@ -373,11 +376,11 @@ export default async (event) => handler(config)(event);
 Contributions are very much desired!
 Official `CONTRIBUTING.md` coming soon.
 Use `npx cz` to use the commitizen CLI to create your commits according to project format.
-Maintained by [Adrian Artiles](https://twitter.com/AdrianArtiles).
+Maintained by [Adrian Artiles](https://twitter.com/AdrianArtiles) and [key.dev](https://key.dev).
 
 
 ## Use BlueAuth?
 **Promote your project!**
 
-Get in touch with [Adrian](https://twitter.com/AdrianArtiles).
+Get in touch with [Adrian](https://twitter.com/AdrianArtiles) or [hey@key.dev](mailto:hey@key.dev)
 Building a showcase to promote secure projects using BlueAuth. All welcomed!
