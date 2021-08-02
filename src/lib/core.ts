@@ -67,23 +67,25 @@ export async function sendLoginEmail({
   const url = encodeURI(urlUnencoded);
   const { text, html } = config.createLoginEmailStrings({ url, serviceName: config.serviceName });
 
+  const mailOptions = {
+    from: `"${config.smtpFromName}" <${config.smtpFromAddress}>`, // sender address
+    to: toEmail,
+    subject: config.smtpSubject,
+    text,
+    html,
+  };
   const debugObject = {
     text,
     html,
     config,
     toEmail,
+    mailOptions,
   };
   debug('blueauth')('sendLoginEmail %j', debugObject);
 
   try {
     const transporter = nodemailer.createTransport(config.smtpURL);
-    const info = await transporter.sendMail({
-      from: `"${config.smtpFromName}" <${config.smtpFromAddress}>`, // sender address
-      to: toEmail,
-      subject: config.smtpSubject,
-      text,
-      html,
-    });
+    const info = await transporter.sendMail(mailOptions);
     debug('blueauth')('sendLoginEmail info %o', info);
     return true;
   } catch (error) {
@@ -114,7 +116,7 @@ export async function loginStart({
       const tokenBody: { email: string, redirectURL?: string } = { email, redirectURL };
       if (redirectURL) tokenBody.redirectURL = redirectURL;
       const token = jwt.sign(tokenBody, config.secret, { expiresIn: '15m' });
-      sendLoginEmail({ config, toEmail: email, token });
+      await sendLoginEmail({ config, toEmail: email, token });
       break;
     }
     default:
