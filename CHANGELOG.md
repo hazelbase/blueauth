@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.11](https://github.com/key-lab/blueauth/compare/v0.7.10...v0.7.11) (2021-08-02)
+
+
+### Features
+
+* awaiting for completion of sending email, updating email debuging ([57e24bd](https://github.com/key-lab/blueauth/commit/57e24bd3c9fafcde1e1b54cb6aed5a4d294b0728))
+
 ### [0.7.10](https://github.com/key-lab/blueauth/compare/v0.7.9...v0.7.10) (2021-07-29)
 
 ### [0.7.9](https://github.com/key-lab/blueauth/compare/v0.7.8...v0.7.9) (2021-07-29)
