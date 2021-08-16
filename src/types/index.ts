@@ -10,7 +10,7 @@ export interface CreateIdentity {
   (identityPayload: any): Promise<any | undefined>;
 }
 
-export interface CreateLoginEmailStrings {
+export interface CreateSignInEmailStrings {
   ({ url, serviceName }: { url: string, serviceName?: string }): { text: string; html?: string; }
 }
 
@@ -21,12 +21,12 @@ export type ConfigOptions = {
   secret: string;
 
   /**
-   * Automatically log someone in as soon as they register.
+   * Automatically sign someone in as soon as they register.
    * Note: this means their email is not yet verified.
    *
    * @default false
    */
-  loginAfterRegistration?: boolean;
+  signInAfterRegistration?: boolean;
 
   /**
    * Refresh a signed in session each time the whoami query is hit.
@@ -93,13 +93,13 @@ export type ConfigOptions = {
   smtpFromAddress: string;
 
   /**
-   * The email subject to use in log in emails
+   * The email subject to use in sign in emails
    *
    * @example
-   * Log In to AirBnb!
+   * Sign In to AirBnb!
    *
    * @default
-   * Log In
+   * Sign In
    */
   smtpSubject?: string;
 
@@ -118,21 +118,21 @@ export type ConfigOptions = {
   cookieOptions?: CookieSerializeOptions;
 
   /**
-   * Function that will be given an object with the URL a user must visit to be logged in,
+   * Function that will be given an object with the URL a user must visit to be signed in,
    * and must return an object with "html" and "text" properties that are each strings.
    * "html" the the string that is the email sent as HTML, and "text" is the string sent as an email to text only
    *
    * @example
    * function makeEmail({ url }) {
-   *   const html = `Click on this to log in <a href="${url}">Click Here</a>`;
-   *   const text = `Copy and paste this URL into your browser address bar to log in: ${url}`;
+   *   const html = `Click on this to sign in <a href="${url}">Click Here</a>`;
+   *   const text = `Copy and paste this URL into your browser address bar to sign in: ${url}`;
    *   return { html, text };
    * }
    */
-  createLoginEmailStrings?: CreateLoginEmailStrings;
+  createSignInEmailStrings?: CreateSignInEmailStrings;
 
   /**
-   * Function that will be given whatever identity payload (from a log in form for example) and returns a single matching identity / user if found;
+   * Function that will be given whatever identity payload (from a sign in form for example) and returns a single matching identity / user if found;
    */
   findUniqueIdentity: FindUniqueIdentity;
 
@@ -149,20 +149,20 @@ export type GetConfigOptions = {
   secret: string;
 
   /**
-   * Function that will be given whatever identity payload (from a log in form for example) and returns a single matching identity / user if found;
+   * Function that will be given whatever identity payload (from a sign in form for example) and returns a single matching identity / user if found;
    */
   findUniqueIdentity: FindUniqueIdentity;
 };
 
 export type DefaultConfigOptions = {
-  loginAfterRegistration: boolean;
+  signInAfterRegistration: boolean;
   sessionLifespan: string | number;
   refreshSession: boolean;
   smtpFromName: string;
   smtpSubject: string;
   cookieNamePrefix: string;
   cookieOptions: CookieSerializeOptions;
-  createLoginEmailStrings: CreateLoginEmailStrings;
+  createSignInEmailStrings: CreateSignInEmailStrings;
 };
 
 export type Config = Omit<Required<ConfigOptions>, 'serviceName'> & { serviceName?: string };

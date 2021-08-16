@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 import type { APIGatewayProxyResult, APIGatewayProxyEvent } from 'aws-lambda';
 import debug from 'debug';
 import {
-  loginSubmit,
+  signInSubmit,
   makeConfig,
   makeGetConfig,
   whoami,
@@ -31,13 +31,13 @@ export function handler(configInput: ConfigOptions) {
     for (const [key, value] of Object.entries(event.headers || {})) {
       eventHeaders[key.toLowerCase()] = value;
     }
-    if (event.queryStringParameters?.loginToken) {
-      const { loginToken } = event.queryStringParameters;
+    if (event.queryStringParameters?.signInToken) {
+      const { signInToken } = event.queryStringParameters;
       try {
         const {
           token,
           redirectURL,
-        } = await loginSubmit({ jwtString: loginToken as string, config });
+        } = await signInSubmit({ jwtString: signInToken as string, config });
         const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, token, config.cookieOptions);
         result.headers['Set-Cookie'] = cookieString;
         result.headers.Location = redirectURL || '/';

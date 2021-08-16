@@ -53,8 +53,8 @@ describe('handler', () => {
       const { id } = exampleUser;
       const secret = `someWrongSecret${config.secret}`;
       const expiresIn = config.sessionLifespan;
-      // const loginCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
-      // req.headers = { cookie: loginCookie };
+      // const signInCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
+      // req.headers = { cookie: signInCookie };
       req.cookies = { 'blueauth-session': createJWTSessionToken({ id, secret, expiresIn }) };
 
       await handler(config)(req, res);
@@ -81,7 +81,7 @@ describe('handler', () => {
     });
   });
 
-  describe('start email login', () => {
+  describe('start email signIn', () => {
     // TODO: check email is sent / not sent
 
     describe('no existing user', () => {
@@ -90,7 +90,7 @@ describe('handler', () => {
         req.body = {
           query: `
             mutation register {
-              startEmailLogin(identity: { email: "startEmailLogin@test.com" })
+              startEmailSignIn(identity: { email: "startEmailSignIn@test.com" })
             }
           `,
         };
@@ -108,28 +108,28 @@ describe('handler', () => {
         req.body = {
           query: `
             mutation register {
-              startEmailLogin(identity: { email: "${existingIdentity.email}" })
+              startEmailSignIn(identity: { email: "${existingIdentity.email}" })
             }
           `,
         };
 
         await handler(config)(req, res);
 
-        expect(res.body.data.startEmailLogin).toBe(true);
+        expect(res.body.data.startEmailSignIn).toBe(true);
       });
     });
   });
 
-  describe('start email login or register', () => {
+  describe('start email signIn or register', () => {
     describe('existing user', () => {
       // TODO check email sending
-      it('starts log in process for user', async () => {
+      it('starts sign in process for user', async () => {
         const existingIdentity = identities[0];
         req.method = 'POST';
         req.body = {
           query: `
             mutation register {
-              registerOrStartEmailLogin(identity: { email: "${existingIdentity.email}" })
+              registerOrStartEmailSignIn(identity: { email: "${existingIdentity.email}" })
             }
           `,
         };
@@ -137,26 +137,26 @@ describe('handler', () => {
         await handler(config)(req, res);
 
         expect(res.headers['Set-Cookie']).toBeFalsy();
-        expect(res.body.data.registerOrStartEmailLogin).toBe('LOGIN_STARTED');
+        expect(res.body.data.registerOrStartEmailSignIn).toBe('SIGN_IN_STARTED');
       });
     });
 
     describe('no existing user', () => {
-      describe('auto login', () => {
+      describe('auto signIn', () => {
         // TODO check email sending
-        it('logs them in', async () => {
+        it('signs them in', async () => {
           req.method = 'POST';
           req.body = {
             query: `
               mutation register {
-                registerOrStartEmailLogin(identity: { email: "someNewPerson@test.com" })
+                registerOrStartEmailSignIn(identity: { email: "someNewPerson@test.com" })
               }
             `,
           };
 
-          const loginConfig = { ...config, ...{ loginAfterRegistration: true } };
+          const signInConfig = { ...config, ...{ signInAfterRegistration: true } };
 
-          await handler(loginConfig)(req, res);
+          await handler(signInConfig)(req, res);
 
           const cookieHeader = res.headers['Set-Cookie'];
           const cookieParsed = cookie.parse(cookieHeader as string);
@@ -164,19 +164,19 @@ describe('handler', () => {
           const sessionTokenDecoded = jwt.verify(sessionToken, config.secret);
           const sessionId = typeof sessionTokenDecoded === 'string' ? JSON.parse(sessionTokenDecoded).id : sessionTokenDecoded.id;
 
-          expect(res.body.data.registerOrStartEmailLogin).toBe('LOGIN_COMPLETED');
+          expect(res.body.data.registerOrStartEmailSignIn).toBe('SIGN_IN_COMPLETED');
           expect(sessionId).toBe('aaaa'); // TODO: better handle new user creation ID
         });
       });
 
-      describe('no auto login', () => {
-        it('does not log them in, starts log in process', async () => {
+      describe('no auto signIn', () => {
+        it('does not sign them in, starts sign in process', async () => {
           // TODO: check email sending
           req.method = 'POST';
           req.body = {
             query: `
               mutation register {
-                registerOrStartEmailLogin(identity: { email: "someNewPerson@test.com" })
+                registerOrStartEmailSignIn(identity: { email: "someNewPerson@test.com" })
               }
             `,
           };
@@ -184,13 +184,13 @@ describe('handler', () => {
           await handler(config)(req, res);
 
           expect(res.headers['Set-Cookie']).toBeFalsy();
-          expect(res.body.data.registerOrStartEmailLogin).toBe('LOGIN_STARTED');
+          expect(res.body.data.registerOrStartEmailSignIn).toBe('SIGN_IN_STARTED');
         });
       });
     });
   });
 
-  describe('complete login', () => {
+  describe('complete signIn', () => {
     describe('valid token', () => {
       it('responds with token in cookie and body, and redirects', async () => {
         const existingIdentity = identities[0];
@@ -198,7 +198,7 @@ describe('handler', () => {
         const token = jwt.sign(tokenBody, config.secret, { expiresIn: '15m' });
 
         req.method = 'GET';
-        req.query = { loginToken: token };
+        req.query = { signInToken: token };
 
         await handler(config)(req, res);
 
@@ -221,7 +221,7 @@ describe('handler', () => {
         const token = jwt.sign(tokenBody, `INVALID_SECRET_${config.secret}`, { expiresIn: '15m' });
 
         req.method = 'GET';
-        req.query = { loginToken: token };
+        req.query = { signInToken: token };
 
         await handler(config)(req, res);
 
@@ -235,7 +235,7 @@ describe('handler', () => {
     describe('no token', () => {
       it('responds with no token in cookie or body', async () => {
         req.method = 'GET';
-        req.query = { loginToken: 'just some random string' };
+        req.query = { signInToken: 'just some random string' };
 
         await handler(config)(req, res);
 
@@ -247,31 +247,31 @@ describe('handler', () => {
     });
   });
 
-  describe('logout', () => {
+  describe('signout', () => {
     it('responds with nothing when no cookie', async () => {
       req.method = 'POST';
-      req.body = { query: 'mutation logMeOut { logout }' };
+      req.body = { query: 'mutation SignMeOut { signOut }' };
 
       await handler(config)(req, res);
 
-      expect(res.body.data.logout).toBe(true);
+      expect(res.body.data.signOut).toBe(true);
     });
 
     it('responds with empty cookie', async () => {
       req.method = 'POST';
-      req.body = { query: 'mutation logMeOut { logout }' };
+      req.body = { query: 'mutation signOut { signOut }' };
       const { id } = exampleUser;
       const secret = `someWrongSecret${config.secret}`;
       const expiresIn = config.sessionLifespan;
-      // const loginCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
-      // req.headers = { cookie: loginCookie };
+      // const signInCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
+      // req.headers = { cookie: signInCookie };
       req.cookies = { 'blueauth-session': createJWTSessionToken({ id, secret, expiresIn }) };
 
       await handler(config)(req, res);
 
       const cookieHeader = res.headers['Set-Cookie'];
       const cookieParsed = cookie.parse(cookieHeader as string);
-      expect(res.body.data.logout).toBe(true);
+      expect(res.body.data.signOut).toBe(true);
       expect(cookieParsed['Max-Age']).toBe('0');
     });
   });
@@ -297,8 +297,8 @@ describe('getIdentity', () => {
       const { id } = exampleUser;
       const { secret } = config;
       const expiresIn = config.sessionLifespan;
-      // const loginCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
-      // req.headers = { cookie: loginCookie };
+      // const signInCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
+      // req.headers = { cookie: signInCookie };
       req.cookies = { 'blueauth-session': createJWTSessionToken({ id, secret, expiresIn }) };
 
       const result = await getIdentity(config)({ req });
@@ -311,8 +311,8 @@ describe('getIdentity', () => {
       const { id } = exampleUser;
       const secret = `someWrongSecretAddedTo${config.secret}`;
       const expiresIn = config.sessionLifespan;
-      // const loginCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
-      // req.headers = { cookie: loginCookie };
+      // const signInCookie = cookie.serialize('blueauth-session', createJWTSessionToken({ id, secret, expiresIn }));
+      // req.headers = { cookie: signInCookie };
       req.cookies = { 'blueauth-session': createJWTSessionToken({ id, secret, expiresIn }) };
 
       const result = await getIdentity(config)({ req });

@@ -3,7 +3,7 @@ import cookie from 'cookie';
 import type { Request, Response } from 'express';
 import debug from 'debug';
 import {
-  loginSubmit,
+  signInSubmit,
   makeConfig,
   makeGetConfig,
   whoami,
@@ -17,15 +17,15 @@ export function handler(configInput: ConfigOptions) {
   const config = makeConfig(configInput);
 
   return async (req: Request, res: Response) => {
-    if (req.query?.loginToken) {
-      const loginToken = Array.isArray(req.query.loginToken)
-        ? req.query.loginToken[0]
-        : req.query.loginToken;
+    if (req.query?.signInToken) {
+      const signInToken = Array.isArray(req.query.signInToken)
+        ? req.query.signInToken[0]
+        : req.query.signInToken;
       try {
         const {
           token,
           redirectURL,
-        } = await loginSubmit({ jwtString: loginToken as string, config });
+        } = await signInSubmit({ jwtString: signInToken as string, config });
         const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, token, config.cookieOptions);
         res.setHeader('Set-Cookie', cookieString);
         res.redirect(redirectURL || '/');
@@ -67,7 +67,7 @@ export function handler(configInput: ConfigOptions) {
     //   contextValue: context,
     // });
     //
-    // if (result1.data?.completeLogin) return res.redirect(result1.data.completeLogin);
+    // if (result1.data?.completeSignIn) return res.redirect(result1.data.completeSignIn);
     // return res.status(200).json(result1);
   };
 }

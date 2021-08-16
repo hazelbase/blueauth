@@ -11,11 +11,11 @@ import { emailTemplateText, emailTemplateHTML } from './emailTemplate';
 
 const isNotProd: boolean = typeof process.env.NODE_ENV === 'string' && process.env.NODE_ENV !== 'production';
 export const defaultConfigOptions: DefaultConfigOptions = {
-  loginAfterRegistration: false,
+  signInAfterRegistration: false,
   sessionLifespan: '7d',
   refreshSession: true,
   smtpFromName: 'Authentication',
-  smtpSubject: 'Log In',
+  smtpSubject: 'Sign In',
   cookieNamePrefix: 'blueauth',
   cookieOptions: {
     secure: !isNotProd,
@@ -24,7 +24,7 @@ export const defaultConfigOptions: DefaultConfigOptions = {
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
   },
-  createLoginEmailStrings: ({ url, serviceName }) => ({
+  createSignInEmailStrings: ({ url, serviceName }) => ({
     text: emailTemplateText(url, serviceName),
     html: emailTemplateHTML(url, serviceName),
   }),
@@ -52,7 +52,7 @@ export function createJWTSessionToken({
   );
 }
 
-export async function sendLoginEmail({
+export async function sendSignInEmail({
   config,
   toEmail,
   token,
@@ -62,10 +62,10 @@ export async function sendLoginEmail({
   token: string,
 }): Promise<Boolean> {
   // eslint-disable-next-line max-len
-  // const urlUnencoded = `${config.authEndpoint}?query=query q1 { completeLogin(token: "${token}") }`;
-  const urlUnencoded = `${config.authEndpoint}?loginToken=${token}`;
+  // const urlUnencoded = `${config.authEndpoint}?query=query q1 { completeSignIn(token: "${token}") }`;
+  const urlUnencoded = `${config.authEndpoint}?signInToken=${token}`;
   const url = encodeURI(urlUnencoded);
-  const { text, html } = config.createLoginEmailStrings({ url, serviceName: config.serviceName });
+  const { text, html } = config.createSignInEmailStrings({ url, serviceName: config.serviceName });
 
   const mailOptions = {
     from: `"${config.smtpFromName}" <${config.smtpFromAddress}>`, // sender address
@@ -75,26 +75,23 @@ export async function sendLoginEmail({
     html,
   };
   const debugObject = {
-    text,
-    html,
     config,
-    toEmail,
     mailOptions,
   };
-  debug('blueauth')('sendLoginEmail %j', debugObject);
+  debug('blueauth')('sendSignInEmail %j', debugObject);
 
   try {
     const transporter = nodemailer.createTransport(config.smtpURL);
     const info = await transporter.sendMail(mailOptions);
-    debug('blueauth')('sendLoginEmail info %o', info);
+    debug('blueauth')('sendSignInEmail info %o', info);
     return true;
   } catch (error) {
-    debug('blueauth')('sendLoginEmail error %o', error);
+    debug('blueauth')('sendSignInEmail error %o', error);
     return false;
   }
 }
 
-export async function loginStart({
+export async function signInStart({
   identityPayload,
   config,
   redirectURL,
@@ -103,39 +100,39 @@ export async function loginStart({
   config: Config,
   redirectURL?: string,
 }): Promise<void> {
-  // TODO Future: have path to more login flows, like FIDO
+  // TODO Future: have path to more sign in flows, like FIDO
   const existingIdentity = await config.findUniqueIdentity(identityPayload);
   if (!existingIdentity) throw new Error('no existing identity');
 
-  const loginFlow = 'email';
+  const signInFlow = 'email';
 
-  switch (loginFlow) {
+  switch (signInFlow) {
     case 'email': {
       const { email } = existingIdentity;
       if (!email) throw new Error('missing email');
       const tokenBody: { email: string, redirectURL?: string } = { email, redirectURL };
       if (redirectURL) tokenBody.redirectURL = redirectURL;
       const token = jwt.sign(tokenBody, config.secret, { expiresIn: '15m' });
-      await sendLoginEmail({ config, toEmail: email, token });
+      await sendSignInEmail({ config, toEmail: email, token });
       break;
     }
     default:
-      throw new Error(`sign in flow not implemented: ${loginFlow}`);
+      throw new Error(`sign in flow not implemented: ${signInFlow}`);
   }
 }
 
-interface LoginSubmit {
+interface SignInSubmit {
   token: string;
   redirectURL?: string;
 }
 
-export async function loginSubmit({
+export async function signInSubmit({
   jwtString,
   config,
 }: {
   jwtString: string,
   config: Config,
-}): Promise<LoginSubmit> {
+}): Promise<SignInSubmit> {
   const jwtDecoded = jwt.verify(jwtString, config.secret);
   if (typeof jwtDecoded === 'string') throw new Error('unable to decode JWT');
 

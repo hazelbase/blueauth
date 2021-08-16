@@ -2,7 +2,7 @@ import cookie from 'cookie';
 import { graphqlHTTP } from 'express-graphql';
 import debug from 'debug';
 import {
-  loginSubmit,
+  signInSubmit,
   makeConfig,
   makeGetConfig,
   whoami,
@@ -20,12 +20,12 @@ export function handler(configInput: ConfigOptions) {
   debug('blueauth')('handler config %O', config);
 
   return async (req: NextApiRequest, res: NextApiResponse) => {
-    if (req.query?.loginToken) {
-      const loginToken = Array.isArray(req.query.loginToken)
-        ? req.query.loginToken[0]
-        : req.query.loginToken;
+    if (req.query?.signInToken) {
+      const signInToken = Array.isArray(req.query.signInToken)
+        ? req.query.signInToken[0]
+        : req.query.signInToken;
       try {
-        const { token, redirectURL } = await loginSubmit({ jwtString: loginToken, config });
+        const { token, redirectURL } = await signInSubmit({ jwtString: signInToken, config });
         const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, token, config.cookieOptions);
         res.setHeader('Set-Cookie', cookieString);
         res.redirect(redirectURL || '/');

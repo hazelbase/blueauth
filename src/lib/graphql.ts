@@ -6,8 +6,8 @@ import debug from 'debug';
 // import { readFileSync } from 'fs';
 // import { join } from 'path';
 import {
-  loginStart,
-  loginSubmit,
+  signInStart,
+  signInSubmit,
   whoami,
 } from './core';
 import type { GraphQLContext } from '../types';
@@ -18,8 +18,8 @@ export const schema = buildSchema(`
   scalar JSON
 
   enum ActionResult {
-    LOGIN_STARTED
-    LOGIN_COMPLETED
+    SIGN_IN_STARTED
+    SIGN_IN_COMPLETED
   }
 
   type Query {
@@ -27,31 +27,31 @@ export const schema = buildSchema(`
   }
 
   type Mutation {
-    registerOrStartEmailLogin(identity: JSON!, redirectURL: String): ActionResult!
-    startEmailLogin(identity: JSON!, redirectURL: String): Boolean!
+    registerOrStartEmailSignIn(identity: JSON!, redirectURL: String): ActionResult!
+    startEmailSignIn(identity: JSON!, redirectURL: String): Boolean!
     register(identity: JSON!): JSON!
-    logout: Boolean!
+    signOut: Boolean!
   }
 `);
 
 export const root = {
   JSON: GraphQLJSON,
 
-  registerOrStartEmailLogin: async (args: any, context: GraphQLContext) => {
-    debug('blueauth')('registerOrStartEmailLogin %O', args);
+  registerOrStartEmailSignIn: async (args: any, context: GraphQLContext) => {
+    debug('blueauth')('registerOrStartEmailSignIn %O', args);
     const existingIdentity = await context.config.findUniqueIdentity(args.identity);
     if (existingIdentity) {
-      await loginStart({
+      await signInStart({
         identityPayload: args.identity,
         config: context.config,
         redirectURL: args.redirectURL,
       });
-      return 'LOGIN_STARTED';
+      return 'SIGN_IN_STARTED';
     }
 
     const identity = await context.config.createIdentity(args.identity);
 
-    if (context.config.loginAfterRegistration) {
+    if (context.config.signInAfterRegistration) {
       const token = jwt.sign(
         { id: identity.id },
         context.config.secret,
@@ -60,15 +60,15 @@ export const root = {
 
       const cookieString = cookie.serialize(`${context.config.cookieNamePrefix}-session`, token, context.config.cookieOptions);
       context.setCookie(cookieString);
-      return 'LOGIN_COMPLETED';
+      return 'SIGN_IN_COMPLETED';
     }
 
-    await loginStart({
+    await signInStart({
       identityPayload: identity,
       config: context.config,
       redirectURL: args.redirectURL,
     });
-    return 'LOGIN_STARTED';
+    return 'SIGN_IN_STARTED';
   },
 
   register: async (args: any, { config, ...context }: GraphQLContext) => {
@@ -76,7 +76,7 @@ export const root = {
     if (existingIdentity) throw new Error('already exists');
     const identity = await config.createIdentity(args.identity);
 
-    if (config.loginAfterRegistration) {
+    if (config.signInAfterRegistration) {
       const token = jwt.sign(
         { id: identity.id },
         config.secret,
@@ -89,8 +89,8 @@ export const root = {
     return identity;
   },
 
-  startEmailLogin: async (args: any, { config }: GraphQLContext) => {
-    await loginStart({
+  startEmailSignIn: async (args: any, { config }: GraphQLContext) => {
+    await signInStart({
       identityPayload: args.identity,
       config,
       redirectURL: args.redirectURL,
@@ -98,14 +98,14 @@ export const root = {
     return true;
   },
 
-  completeLogin: async ({ token: inputToken }: any, { config, ...context }: GraphQLContext) => {
-    const { token, redirectURL } = await loginSubmit({ jwtString: inputToken, config });
+  completeSignIn: async ({ token: inputToken }: any, { config, ...context }: GraphQLContext) => {
+    const { token, redirectURL } = await signInSubmit({ jwtString: inputToken, config });
     const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, token, config.cookieOptions);
     context.setCookie(cookieString);
     return redirectURL || '/';
   },
 
-  logout: async (_args: any, { config, ...context }: GraphQLContext) => {
+  signOut: async (_args: any, { config, ...context }: GraphQLContext) => {
     const idCookie = context.cookies[`${config.cookieNamePrefix}-session`];
     if (!idCookie) return true;
     const cookieString = cookie.serialize(`${config.cookieNamePrefix}-session`, 'nope', {

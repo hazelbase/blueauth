@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { ConfigOptions } from '../types';
 import {
-  // sendLoginEmail,
+  // sendSignInEmail,
   makeConfig,
 } from './core';
 
@@ -32,7 +32,7 @@ describe('makeConfig', () => {
       domain: 'test.com',
       path: '/',
     };
-    expect(finalConfig.loginAfterRegistration).toBeFalsy();
+    expect(finalConfig.signInAfterRegistration).toBeFalsy();
     expect(finalConfig.sessionLifespan).toBe('7d');
     expect(finalConfig.cookieOptions).toStrictEqual(cookieOptionsExpected);
   });
@@ -60,15 +60,15 @@ describe('makeConfig', () => {
       maxAge: 604800,
       path: '/',
     };
-    expect(finalConfig.loginAfterRegistration).toBeFalsy();
+    expect(finalConfig.signInAfterRegistration).toBeFalsy();
     expect(finalConfig.sessionLifespan).toBe('7d');
     expect(finalConfig.cookieOptions).toStrictEqual(cookieOptionsExpected);
   });
 });
 
-// describe('sendLoginEmail', () => {
+// describe('sendSignInEmail', () => {
 //   it('returns true', async () => {
-//     const result = await sendLoginEmail({ config, toEmail: 'fake@test.com', token: 'someString' });
+//     const result = await sendSignInEmail({ config, toEmail: 'fake@test.com', token: 'someString' });
 //     expect(result).toBe(true);
 //   });
 // });

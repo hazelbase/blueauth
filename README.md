@@ -99,7 +99,7 @@ You now have an authentication (GraphQL) API service at `/api/blueauth`.
 
 To make it  simple to use, you can use the pre-built javascript client [blueauth-client](https://github.com/key-lab/blueauth-client). Here's an example:
 ```javascript
-// pages/login.jsx
+// pages/sign-in.jsx
 import React, { useState } from 'react';
 import blueauth from 'blueauth-client';
 
@@ -108,37 +108,37 @@ export default function Page() {
 
   const handleRegister = async () => {
     // This will hit the createIdentity, with the results returned here.
-    // By default this does not log them in.
+    // By default this does not sign them in.
     // Can enable auto sign in the config options, or implement own logic.
     const { result } = await blueauth().register({ identity: { email } });
     console.log('> new user', result); // whatever is returned from createIdentity
   };
 
-  const handleLogin = async () => {
+  const handleSignIn = async () => {
     // This will hit the findUniqueIdentity to find a user
-    // If it returns a user, an email will be sent with a log in link
+    // If it returns a user, an email will be sent with a sign in link
     //   (to the user's email attribute)
-    // after clicking the log in link in the email, they will be sent to redirectURL (default of '/')
-    const { result } = await blueauth().startEmailLogin({
+    // after clicking the sign in link in the email, they will be sent to redirectURL (default of '/')
+    const { result } = await blueauth().startEmailSignIn({
        identity: { email },
        redirectURL: '/dashboard'
     });
-    console.log('> is login started:', result); // true or false
+    console.log('> is sign in started:', result); // true or false
   };
 
-  const handleRegisterOrLogin = async () => {
-    // This is a combination of register + start login.
+  const handleRegisterOrSignIn = async () => {
+    // This is a combination of register + start sign in.
     //
     // The back end library will first try to find a user with findUniqueIdentity
-    // If it finds a user, it will send a log in email
-    // If it does not find a user, it will create one using createIdentity, then send a login email
-    //   (or if loginAfterRegistration is set to true, a new user will be auto signed in)
-    const { result } = await blueauth().registerOrStartEmailLogin({
+    // If it finds a user, it will send a sign in email
+    // If it does not find a user, it will create one using createIdentity, then send a sign in email
+    //   (or if signInAfterRegistration is set to true, a new user will be auto signed in)
+    const { result } = await blueauth().registerOrStartEmailSignIn({
       identity: { email },
       redirectURL: '/dashboard'
     });
-    // result is LOGIN_STARTED (or LOGIN_COMPLETED for new user auto sign in)
-    console.log('> is new user or is login started?', result);
+    // result is SIGN_IN_STARTED (or SIGN_IN_COMPLETED for new user auto sign in)
+    console.log('> is new user or is sign in started?', result);
   };
 
   const handleWhoami = async () => {
@@ -149,25 +149,25 @@ export default function Page() {
     console.log('> you are', whoami); // whatever is returned from findUniqueIdentity
   };
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     // This does an API call that deletes the cookie that stores the session information
-    const { result } = await blueauth().logout();
-    console.log('> is logged out', result); // true
+    const { result } = await blueauth().signOut();
+    console.log('> is signed out', result); // true
   };
 
   return (
     <div>
-      <h1>Log In</h1>
+      <h1>sign in</h1>
       <input
         placeholder="your@email.com"
         type="email"
         onChange={(event) => setEmail(event.target.value)}
       />
       <button onClick={handleRegister}>Register</button>
-      <button onClick={handleLogin}>Log In</button>
-      <button onClick={handleRegisterOrLogin}>Start Register or Login</button>
+      <button onClick={handleSignIn}>sign in</button>
+      <button onClick={handleRegisterOrSignIn}>Start Register or Sign In</button>
       <button onClick={handleWhoami}>Who Am I?</button>
-      <button onClick={handleLogout}>Log Out</button>
+      <button onClick={handleSignOut}>Sign Out</button>
     </div>
   );
 }
@@ -236,7 +236,7 @@ export const getServerSideProps = async (context) => {
   const config = { /* your config */ };
   const user = await getIdentity(config)(context);
 
-  if (!user) return { redirect: { destination: '/login' } };
+  if (!user) return { redirect: { destination: '/sign-in' } };
   return { props: { user } };
 };
 ```
@@ -255,22 +255,22 @@ authEndpoint | | string | **(required)** The full URL to where the blueauth endp
 smtpURL |  | string | **(required)** The SMTP URL for sending emails
 smtpFromAddress |  | string | **(required)** The from email address for emails
 smtpFromName | Authentication | string | The from name in emails
-smtpSubject | Log In | string | The subject for the log in email
+smtpSubject | Sign In | string | The subject for the sign in email
 cookieNamePrefix | blueauth | string | The prefix for the cookie used by blueauth
 cookieOptions |  | object | The options for the auth cookie. Is merged with the default cookie options, with these settings taking priority, and passed to the underlying cookie library. [Option documentation here](https://github.com/jshttp/cookie#options-1)
-loginAfterRegistration | false | boolean | Automatically sign in users upon registration
+signInAfterRegistration | false | boolean | Automatically sign in users upon registration
 refreshSession | false | boolean | Refresh/extend a user's session upon whoami checks. Otherwise they will have to re-sign in when their original sign in expires.
 sessionLifespan | 7 days | string or number | Set how long a user is signed in before having to re-sign in. Can be a string (like '7d' or '24h'), or a number in milliseconds.
 serviceName | null | string | The user facing service name. Used in the default email template.
-createLoginEmailStrings |  | function | A function to create your own emails to send. Details below.
+createSignInEmailStrings |  | function | A function to create your own emails to send. Details below.
 
-### createLoginEmailStrings
+### createSignInEmailStrings
 If you want to define the body of the emails sent instead of using the default email templates, define this function in the config object.
 The function receives an object with the `url` key that is the URL the user must visit to be signed in and redirected.
 The function must return an object with a (required) `text` and (optional) `html` key for text and html emails.
 Example:
 ```javascript
-  const createLoginEmailStrings = ({ url }) => {
+  const createSignInEmailStrings = ({ url }) => {
     return {
       text: `Please visit ${url} in your browser to sign in`,
       html: `Please click <a href="${url}">HERE</a> to sign in`,
@@ -298,14 +298,14 @@ Everything is handled at a single URL endpoint, which is of course determined by
 
 There are 6 functionalities exposed by the API:
 - register a new identity
-- start a log in flow
-- complete a log in flow
-- register and/or start a log in flow
+- start a sign in flow
+- complete a sign in flow
+- register and/or start a sign in flow
 - who am I check
-- log out
+- sign out
 
-The "complete a log in" flow is simply a GET request against the endpoint with a `loginToken` query parameter (which set to a secure token).
-This is typically used by the "sending a log in email" functionality, which includes the endpoint with the `loginToken` query parameter as a link.
+The "complete a sign in" flow is simply a GET request against the endpoint with a `signInToken` query parameter (which set to a secure token).
+This is typically used by the "sending a sign in email" functionality, which includes the endpoint with the `signInToken` query parameter as a link.
 The successful response to this request sets the auth cookie and redirects the user.
 
 The remaining 5 functions are available through the endpoint as GraphQL queries. If you are unfamiliar with GraphQL, you can use the [blueauth-client](https://github.com/key-lab/blueauth-client) which wraps up all the API calls in a simple javascript library.
@@ -315,8 +315,8 @@ The GraphQL schema for these queries:
   scalar JSON
 
   enum ActionResult {
-    LOGIN_STARTED
-    LOGIN_COMPLETED
+    SIGN_IN_STARTED
+    SIGN_IN_COMPLETED
   }
 
   type Query {
@@ -324,10 +324,10 @@ The GraphQL schema for these queries:
   }
 
   type Mutation {
-    registerOrStartEmailLogin(identity: JSON!, redirectURL: String): ActionResult!
-    startEmailLogin(identity: JSON!, redirectURL: String): Boolean!
+    registerOrStartEmailSignIn(identity: JSON!, redirectURL: String): ActionResult!
+    startEmailSignIn(identity: JSON!, redirectURL: String): Boolean!
     register(identity: JSON!): JSON!
-    logout: Boolean!
+    signOut: Boolean!
   }
 
 ```
