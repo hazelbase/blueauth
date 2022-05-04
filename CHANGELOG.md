@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.2](https://github.com/key-lab/blueauth/compare/v0.8.1...v0.8.2) (2022-05-04)
+
+
+### Bug Fixes
+
+* improving node module compatibility ([3186c78](https://github.com/key-lab/blueauth/commit/3186c78e41f9a7b529d07b14402efc60feeec13d))
+
 ### [0.8.1](https://github.com/key-lab/blueauth/compare/v0.8.0...v0.8.1) (2022-05-04)
 
 ## [0.8.0](https://github.com/key-lab/blueauth/compare/v0.7.11...v0.8.0) (2021-08-16)
