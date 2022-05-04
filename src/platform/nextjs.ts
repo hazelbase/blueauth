@@ -6,10 +6,10 @@ import {
   makeConfig,
   makeGetConfig,
   whoami,
-} from '../lib/core';
+} from '../lib/core.js';
 import type { ConfigOptions, GraphQLContext, GetConfigOptions } from '../types';
 import type { GetServerSidePropsContextReq, NextApiRequest, NextApiResponse } from '../types/nextjs';
-import { schema, root } from '../lib/graphql';
+import { schema, root } from '../lib/graphql.js';
 
 export { ConfigOptions } from '../types';
 

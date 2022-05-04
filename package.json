@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "nodemon --watch src --ext ts,graphql --exec 'npm run build'",
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.module.json",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.module.json && npm run buildCopyfiles",
+    "buildCopyfiles": "cp dist.package.main.json dist/main/package.json && cp dist.package.module.json dist/module/package.json",
     "prepublishOnly": "npm run build",
     "preversion": "npm run test",
     "version": "git add CHANGELOG.md package.json src/*",

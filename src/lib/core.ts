@@ -7,7 +7,7 @@ import type {
   GetConfigOptions,
   Config,
 } from '../types';
-import { emailTemplateText, emailTemplateHTML } from './emailTemplate';
+import { emailTemplateText, emailTemplateHTML } from './emailTemplate.js';
 
 const isNotProd: boolean = typeof process.env.NODE_ENV === 'string' && process.env.NODE_ENV !== 'production';
 export const defaultConfigOptions: DefaultConfigOptions = {

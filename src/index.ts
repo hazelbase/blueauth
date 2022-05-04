@@ -1,2 +1,2 @@
-export * as express from './platform/express';
-export * as nextjs from './platform/nextjs';
+export * as express from './platform/express.js';
+export * as nextjs from './platform/nextjs.js';
