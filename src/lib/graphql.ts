@@ -9,7 +9,7 @@ import {
   signInStart,
   signInSubmit,
   whoami,
-} from './core';
+} from './core.js';
 import type { GraphQLContext } from '../types';
 
 // const typeDefs = readFileSync(join(__dirname, './schema.graphql'), 'utf-8');
