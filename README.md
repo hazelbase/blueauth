@@ -97,7 +97,7 @@ export const handler = blueauthHandler({
 ```
 You now have an authentication (GraphQL) API service at `/api/blueauth`.
 
-To make it  simple to use, you can use the pre-built javascript client [blueauth-client](https://github.com/key-lab/blueauth-client). Here's an example:
+To make it  simple to use, you can use the pre-built javascript client [blueauth-client](https://github.com/hazelbase/blueauth-client). Here's an example:
 ```javascript
 // pages/sign-in.jsx
 import React, { useState } from 'react';
@@ -172,7 +172,7 @@ export default function Page() {
   );
 }
 ```
-There is also [blueauth-react](https://github.com/key-lab/blueauth-react) that adds more features, such as tab syncing, server side rendering, a React provider, and more.
+There is also [blueauth-react](https://github.com/hazelbase/blueauth-react) that adds more features, such as tab syncing, server side rendering, a React provider, and more.
 
 On the server side you can get the authenticated user with `getIdentity`.
 ```javascript
@@ -240,7 +240,7 @@ export const getServerSideProps = async (context) => {
   return { props: { user } };
 };
 ```
-[blueauth-react](https://github.com/key-lab/blueauth-react) can provide an identityContext to persist the identity across the app.
+[blueauth-react](https://github.com/hazelbase/blueauth-react) can provide an identityContext to persist the identity across the app.
 
 # Documentation
 ## Configuration
@@ -308,7 +308,7 @@ The "complete a sign in" flow is simply a GET request against the endpoint with 
 This is typically used by the "sending a sign in email" functionality, which includes the endpoint with the `signInToken` query parameter as a link.
 The successful response to this request sets the auth cookie and redirects the user.
 
-The remaining 5 functions are available through the endpoint as GraphQL queries. If you are unfamiliar with GraphQL, you can use the [blueauth-client](https://github.com/key-lab/blueauth-client) which wraps up all the API calls in a simple javascript library.
+The remaining 5 functions are available through the endpoint as GraphQL queries. If you are unfamiliar with GraphQL, you can use the [blueauth-client](https://github.com/hazelbase/blueauth-client) which wraps up all the API calls in a simple javascript library.
 
 The GraphQL schema for these queries:
 ```

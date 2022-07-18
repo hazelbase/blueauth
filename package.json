@@ -51,12 +51,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/key-lab/blueauth.git"
+    "url": "https://github.com/hazelbase/blueauth.git"
   },
   "bugs": {
-    "url": "https://github.com/key-lab/blueauth/issues"
+    "url": "https://github.com/hazelbase/blueauth/issues"
   },
-  "homepage": "https://blueauth.io",
+  "homepage": "https://github.com/hazelbase/blueauth#readme",
   "files": [
     "dist/main",
     "dist/module",
